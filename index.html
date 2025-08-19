@@ -4,17 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>STEM Ms. Chang – Learning Resources</title>
-
-  <!-- Inline favicon：避免 /favicon.ico 404 -->
+  <!-- Inline favicon to avoid /favicon.ico 404 -->
   <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="%230f172a"/><circle cx="64" cy="64" r="44" fill="%2338bdf8"/><text x="64" y="78" font-size="48" text-anchor="middle" fill="%23052538" font-family="Arial" font-weight="700">SC</text></svg>' />
-  <!-- 放宽 COOP，帮助弹窗在 Vercel 上工作 -->
+  <!-- Help popup auth on Vercel; console warning is harmless -->
   <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups" />
 
   <style>
-    :root{--bg:#0f172a;--card:#111827;--fg:#e5e7eb;--muted:#9ca3af;--accent:#38bdf8;--ok:#34d399}
+    :root{--bg:#0f172a;--card:#111827;--fg:#e5e7eb;--muted:#9ca3af;--accent:#38bdf8;--ok:#34d399;--warn:#fbbf24;--err:#f87171}
     *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--fg);
-         font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
     header,main,footer{max-width:960px;margin:0 auto;padding:20px}
     h1{margin:16px 0 6px;font-size:clamp(24px,5vw,40px)}
     .card{background:rgba(17,24,39,.85);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px}
@@ -22,22 +20,26 @@
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     button,select,input[type=file]{background:var(--accent);color:#05253a;border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
     button.secondary{background:transparent;color:var(--fg);border:1px solid rgba(255,255,255,.18)}
+    button[disabled]{opacity:.5;cursor:not-allowed}
     .hidden{display:none}
     .grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:10px}
     @media(min-width:720px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     a.file{display:flex;gap:10px;align-items:center;padding:12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08)}
     a.file:hover{border-color:rgba(56,189,248,.6)}
     .tag{display:inline-block;margin-top:10px;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--muted)}
-    .error{margin-top:10px;color:#fecaca;background:#7f1d1d33;padding:8px 12px;border-radius:10px;border:1px solid #fecaca33}
+    .alert{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px solid transparent}
+    .alert.warn{background:#513c0022;border-color:#fbbf2422}
+    .alert.err{background:#7f1d1d33;border-color:#fecaca33}
+    code{background:rgba(255,255,255,.08);border-radius:6px;padding:1px 6px}
   </style>
 
-  <!-- Firebase SDKs（Google Auth + Storage）-->
+  <!-- Firebase SDKs (v9 modular, stable) -->
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
-    import { getStorage, ref, listAll, getDownloadURL, uploadBytes } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js';
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+    import { getStorage, ref, listAll, getDownloadURL, uploadBytes } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js';
 
-    // === 你的 Firebase 配置（storageBucket 修正为 appspot.com）===
+    // === Firebase config (make sure storageBucket ends in appspot.com) ===
     const firebaseConfig = {
       apiKey: "AIzaSyDELcdhJKPrSVOGROj-yKl5rSGeNst6Z7k",
       authDomain: "chang-stem-class--materials.firebaseapp.com",
@@ -52,25 +54,35 @@
     const auth = getAuth(app);
     const storage = getStorage(app);
 
-    // 管理员：你的 Gmail
+    // Admin email (only this account can upload/delete)
     const ADMIN_EMAIL = 'vivien.chang10@gmail.com';
 
-    // 小工具
     const $ = (id) => document.getElementById(id);
     const show = (el, on=true) => el.classList.toggle('hidden', !on);
 
-    // Google 登录（popup 方式）
+    const gradeBtns = [ 'btn5','btn6','btn7','btn8' ].map(id=>$(id));
+    function setGradeButtonsDisabled(disabled){
+      gradeBtns.forEach(b=> b.disabled = !!disabled);
+    }
+
+    // Disable grade buttons until signed in
+    setGradeButtonsDisabled(true);
+
+    // Google popup auth
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
 
     async function login(){
+      $('error').textContent = '';
+      show($('errorWrap'), false);
       try {
         await signInWithPopup(auth, provider);
       } catch (e) {
-        show($('error'), true);
+        show($('errorWrap'), true);
         $('error').textContent = `${e.code || 'auth/error'}: ${e.message}`;
       }
     }
+
     async function logout(){ await signOut(auth); }
 
     async function loadFiles(grade){
@@ -79,7 +91,7 @@
         const folderRef = ref(storage, `${grade}/`);
         const res = await listAll(folderRef);
         if(res.items.length===0){
-          $('fileList').innerHTML = `<p class="muted">No files yet in ${grade}.</p>`;
+          $('fileList').innerHTML = `<div class="alert warn">No files yet in <b>${grade}</b>.<br>Upload as admin or try another grade.</div>`;
           return;
         }
         const grid = document.createElement('div'); grid.className='grid';
@@ -91,7 +103,13 @@
         }
         $('fileList').innerHTML=''; $('fileList').appendChild(grid);
       }catch(err){
-        $('fileList').innerHTML = `<p class="error">Failed to load: ${err.message}</p>`;
+        let msg = err && err.message ? err.message : String(err);
+        // Most common pseudo-CORS cause is Storage Rules deny (403), show actionable help
+        const hint = `If you see CORS/Preflight errors, fix Storage Rules:\n`+
+          `Firebase → Build → Storage → Rules →\n`+
+          `  allow read: if request.auth != null;\n`+
+          `  allow write: if request.auth != null && request.auth.token.email == "${ADMIN_EMAIL}";`;
+        $('fileList').innerHTML = `<div class="alert err"><b>Failed to load ${grade}:</b> ${msg}<br><br><small>${hint.replace(/\n/g,'<br>')}</small></div>`;
       }
     }
 
@@ -99,26 +117,33 @@
       const file = $('uploadInput').files[0];
       const grade = $('uploadGrade').value;
       if(!file){ alert('Choose a file first.'); return; }
-      const pathRef = ref(storage, `${grade}/${file.name}`);
-      await uploadBytes(pathRef, file);
-      alert('Uploaded!');
-      loadFiles(grade);
+      try{
+        const pathRef = ref(storage, `${grade}/${file.name}`);
+        await uploadBytes(pathRef, file);
+        alert('Uploaded!');
+        loadFiles(grade);
+      }catch(err){
+        show($('errorWrap'), true);
+        $('error').textContent = `Upload failed: ${err && err.message ? err.message : err}`;
+      }
     }
 
     onAuthStateChanged(auth, user => {
       if(!user){
         show($('loginBox'), true);
         show($('content'), false);
+        setGradeButtonsDisabled(true);
         return;
       }
       const email = (user.email||'').toLowerCase();
       $('welcome').textContent = `Welcome, ${email}`;
       show($('loginBox'), false);
       show($('content'), true);
+      setGradeButtonsDisabled(false);
       $('admin').classList.toggle('hidden', email!==ADMIN_EMAIL);
     });
 
-    // 暴露给按钮
+    // Expose handlers
     window.login = login; window.logout = logout; window.loadFiles = loadFiles; window.doUpload = doUpload;
   </script>
 </head>
@@ -129,16 +154,21 @@
   </header>
 
   <main>
-    <!-- 登录 -->
+    <!-- Sign in card -->
     <div id="loginBox" class="card">
       <div class="row">
         <button onclick="login()">Sign in with Google</button>
-        <span class="muted">Any Google account can sign in</span>
+        <span class="muted">Sign in first, then choose a grade below.</span>
       </div>
-      <div id="error" class="error hidden"></div>
+      <div id="errorWrap" class="alert err hidden"><span id="error"></span></div>
+      <div class="alert warn" style="margin-top:8px">
+        If you see <code>auth/unauthorized-domain</code>, add your domain in<br>
+        <b>Firebase → Authentication → Settings → Authorized domains</b><br>
+        e.g. <code>hsa-stem-chang-learning-resources.vercel.app</code>
+      </div>
     </div>
 
-    <!-- 登录后内容 -->
+    <!-- Content after sign-in -->
     <div id="content" class="card hidden">
       <div class="row">
         <span id="welcome"></span>
@@ -146,14 +176,13 @@
       </div>
       <div class="row" style="margin-top:10px">
         <strong>Select grade:</strong>
-        <button onclick="loadFiles('5th')">5th</button>
-        <button onclick="loadFiles('6th')">6th</button>
-        <button onclick="loadFiles('7th')">7th</button>
-        <button onclick="loadFiles('8th')">8th</button>
+        <button id="btn5" onclick="loadFiles('5th')">5th</button>
+        <button id="btn6" onclick="loadFiles('6th')">6th</button>
+        <button id="btn7" onclick="loadFiles('7th')">7th</button>
+        <button id="btn8" onclick="loadFiles('8th')">8th</button>
       </div>
       <div id="fileList" style="margin-top:12px"></div>
 
-      <!-- 仅管理员可见：上传 -->
       <div id="admin" class="hidden" style="margin-top:14px">
         <hr style="border-color:rgba(255,255,255,.15)">
         <div class="row">
