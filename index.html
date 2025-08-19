@@ -5,15 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>STEM Ms. Chang – Learning Resources</title>
 
-  <!-- Inline favicon so no /favicon.ico 404 -->
+  <!-- Inline favicon：避免 /favicon.ico 404 -->
   <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="%230f172a"/><circle cx="64" cy="64" r="44" fill="%2338bdf8"/><text x="64" y="78" font-size="48" text-anchor="middle" fill="%23052538" font-family="Arial" font-weight="700">SC</text></svg>' />
-  <!-- COOP relaxed for auth flows -->
+  <!-- 放宽 COOP，帮助弹窗在 Vercel 上工作 -->
   <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups" />
 
   <style>
     :root{--bg:#0f172a;--card:#111827;--fg:#e5e7eb;--muted:#9ca3af;--accent:#38bdf8;--ok:#34d399}
     *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--fg);
+         font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
     header,main,footer{max-width:960px;margin:0 auto;padding:20px}
     h1{margin:16px 0 6px;font-size:clamp(24px,5vw,40px)}
     .card{background:rgba(17,24,39,.85);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px}
@@ -30,13 +31,13 @@
     .error{margin-top:10px;color:#fecaca;background:#7f1d1d33;padding:8px 12px;border-radius:10px;border:1px solid #fecaca33}
   </style>
 
-  <!-- Firebase SDKs (Google auth + storage) -->
+  <!-- Firebase SDKs（Google Auth + Storage）-->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
-    import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
     import { getStorage, ref, listAll, getDownloadURL, uploadBytes } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js';
 
-    // === Firebase config (bucket fixed to appspot.com) ===
+    // === 你的 Firebase 配置（storageBucket 修正为 appspot.com）===
     const firebaseConfig = {
       apiKey: "AIzaSyDELcdhJKPrSVOGROj-yKl5rSGeNst6Z7k",
       authDomain: "chang-stem-class--materials.firebaseapp.com",
@@ -51,47 +52,47 @@
     const auth = getAuth(app);
     const storage = getStorage(app);
 
-    // Admin = your Gmail (no domain restriction for others)
+    // 管理员：你的 Gmail
     const ADMIN_EMAIL = 'vivien.chang10@gmail.com';
 
-    // UI helpers
+    // 小工具
     const $ = (id) => document.getElementById(id);
     const show = (el, on=true) => el.classList.toggle('hidden', !on);
 
-    // Use redirect (stable on Vercel)
+    // Google 登录（popup 方式）
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+
     async function login(){
-      if (sessionStorage.getItem('authRedirecting')) return;
-      sessionStorage.setItem('authRedirecting','1');
-      try { await signInWithRedirect(auth, provider); }
-      catch(e){ show($('error'), true); $('error').textContent = e.message; sessionStorage.removeItem('authRedirecting'); }
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (e) {
+        show($('error'), true);
+        $('error').textContent = `${e.code || 'auth/error'}: ${e.message}`;
+      }
     }
     async function logout(){ await signOut(auth); }
-
-    // Handle redirect result, surface helpful tips for unauthorized-domain
-    getRedirectResult(auth).catch(e => {
-      if (e && e.code === 'auth/unauthorized-domain') {
-        show($('error'), true);
-        $('error').innerHTML = `Auth error: unauthorized-domain.<br>Fix in Firebase → Authentication → Settings → <b>Authorized domains</b> → Add: <code>hsa-stem-chang-learning-resources.vercel.app</code>`;
-      } else if (e && e.code) {
-        show($('error'), true); $('error').textContent = `${e.code}: ${e.message}`;
-      }
-    }).finally(() => sessionStorage.removeItem('authRedirecting'));
 
     async function loadFiles(grade){
       $('fileList').innerHTML = `<p class="muted">Loading ${grade} files…</p>`;
       try{
         const folderRef = ref(storage, `${grade}/`);
         const res = await listAll(folderRef);
-        if(res.items.length===0){ $('fileList').innerHTML = `<p class="muted">No files yet in ${grade}.</p>`; return; }
+        if(res.items.length===0){
+          $('fileList').innerHTML = `<p class="muted">No files yet in ${grade}.</p>`;
+          return;
+        }
         const grid = document.createElement('div'); grid.className='grid';
         for(const item of res.items){
           const url = await getDownloadURL(item);
-          const a = document.createElement('a'); a.className='file'; a.href=url; a.target='_blank'; a.rel='noopener';
+          const a = document.createElement('a'); a.className='file';
+          a.href=url; a.target='_blank'; a.rel='noopener';
           a.textContent = item.name; grid.appendChild(a);
         }
         $('fileList').innerHTML=''; $('fileList').appendChild(grid);
-      }catch(err){ $('fileList').innerHTML = `<p class="error">Failed to load: ${err.message}</p>`; }
+      }catch(err){
+        $('fileList').innerHTML = `<p class="error">Failed to load: ${err.message}</p>`;
+      }
     }
 
     async function doUpload(){
@@ -105,13 +106,19 @@
     }
 
     onAuthStateChanged(auth, user => {
-      if(!user){ show($('loginBox'), true); show($('content'), false); return; }
+      if(!user){
+        show($('loginBox'), true);
+        show($('content'), false);
+        return;
+      }
       const email = (user.email||'').toLowerCase();
       $('welcome').textContent = `Welcome, ${email}`;
-      show($('loginBox'), false); show($('content'), true);
+      show($('loginBox'), false);
+      show($('content'), true);
       $('admin').classList.toggle('hidden', email!==ADMIN_EMAIL);
     });
 
+    // 暴露给按钮
     window.login = login; window.logout = logout; window.loadFiles = loadFiles; window.doUpload = doUpload;
   </script>
 </head>
@@ -122,6 +129,7 @@
   </header>
 
   <main>
+    <!-- 登录 -->
     <div id="loginBox" class="card">
       <div class="row">
         <button onclick="login()">Sign in with Google</button>
@@ -130,6 +138,7 @@
       <div id="error" class="error hidden"></div>
     </div>
 
+    <!-- 登录后内容 -->
     <div id="content" class="card hidden">
       <div class="row">
         <span id="welcome"></span>
@@ -144,6 +153,7 @@
       </div>
       <div id="fileList" style="margin-top:12px"></div>
 
+      <!-- 仅管理员可见：上传 -->
       <div id="admin" class="hidden" style="margin-top:14px">
         <hr style="border-color:rgba(255,255,255,.15)">
         <div class="row">
