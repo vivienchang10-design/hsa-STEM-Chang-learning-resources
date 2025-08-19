@@ -4,13 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>STEM Ms. Chang – Learning Resources</title>
-  <!-- Fix COOP for OAuth popups/redirects on Vercel -->
+
+  <!-- Inline favicon (no 404 anymore) -->
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="%230f172a"/><circle cx="64" cy="64" r="44" fill="%2338bdf8"/><text x="64" y="78" font-size="48" text-anchor="middle" fill="%23052538" font-family="Arial" font-weight="700">SC</text></svg>' />
+
+  <!-- COOP relaxed for auth flows (backup to Vercel headers below) -->
   <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups" />
-  <link rel="icon" href="/favicon.ico" sizes="any">
+
   <style>
     :root{--bg:#0f172a;--card:#111827;--fg:#e5e7eb;--muted:#9ca3af;--accent:#38bdf8;--ok:#34d399}
     *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--fg);
+         font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
     header,main,footer{max-width:960px;margin:0 auto;padding:20px}
     h1{margin:16px 0 6px;font-size:clamp(24px,5vw,40px)}
     .card{background:rgba(17,24,39,.85);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px}
@@ -24,14 +29,20 @@
     a.file{display:flex;gap:10px;align-items:center;padding:12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08)}
     a.file:hover{border-color:rgba(56,189,248,.6)}
     .tag{display:inline-block;margin-top:10px;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--muted)}
+    .error{margin-top:10px;color:#fecaca;background:#7f1d1d33;padding:8px 12px;border-radius:10px;border:1px solid #fecaca33}
   </style>
-  <!-- Firebase SDKs (auth + storage only) -->
+
+  <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
-    import { getAuth, OAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
-    import { getStorage, ref, listAll, getDownloadURL, uploadBytes } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js';
+    import {
+      getAuth, OAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged
+    } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
+    import {
+      getStorage, ref, listAll, getDownloadURL, uploadBytes
+    } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js';
 
-    // Your Firebase config (corrected storageBucket domain)
+    // === Your Firebase config (storageBucket corrected to appspot.com) ===
     const firebaseConfig = {
       apiKey: "AIzaSyDELcdhJKPrSVOGROj-yKl5rSGeNst6Z7k",
       authDomain: "chang-stem-class--materials.firebaseapp.com",
@@ -49,49 +60,62 @@
     const ADMIN_EMAIL = 'xchang@harmonytx.org';
     const ALLOWED_DOMAIN = 'harmonytx.org';
 
-    // --- UI elements ---
-    const loginBox = () => document.getElementById('loginBox');
-    const content = () => document.getElementById('content');
-    const admin = () => document.getElementById('admin');
-    const welcome = () => document.getElementById('welcome');
-    const fileList = () => document.getElementById('fileList');
+    // --- UI helpers ---
+    const $ = (id) => document.getElementById(id);
+    const show = (el, on=true) => el.classList.toggle('hidden', !on);
 
-    // Use Microsoft provider with redirect (avoids popup/COOP issues)
+    // Microsoft provider + redirect (avoids popup/COOP issues)
     const provider = new OAuthProvider('microsoft.com');
     provider.setCustomParameters({ prompt: 'select_account' });
+    // 如需固定到单一租户，可取消注释并填 tenant ID：
+    // provider.setCustomParameters({ tenant: 'YOUR_TENANT_ID' });
 
     async function login(){
       if (sessionStorage.getItem('authRedirecting')) return;
       sessionStorage.setItem('authRedirecting','1');
-      await signInWithRedirect(auth, provider);
+      try {
+        await signInWithRedirect(auth, provider);
+      } catch (e){
+        show($('error'), true); $('error').textContent = e.message;
+        sessionStorage.removeItem('authRedirecting');
+      }
     }
     async function logout(){ await signOut(auth); }
 
-    getRedirectResult(auth).catch(err => {
-      console.warn('Redirect error:', err.code, err.message);
-    }).finally(() => {
-      sessionStorage.removeItem('authRedirecting');
-    });
+    // Handle redirect result (and clear the guard)
+    getRedirectResult(auth).catch(e => {
+      // 错误展示（例如 unauthorized-domain 仍需在控制台加域名）
+      if (e && e.code) {
+        show($('error'), true);
+        $('error').textContent = `Auth error: ${e.code}. ${e.message}`;
+      }
+    }).finally(() => { sessionStorage.removeItem('authRedirecting'); });
 
     async function loadFiles(grade){
-      fileList().innerHTML = `<p class="muted">Loading ${grade} files…</p>`;
+      $('fileList').innerHTML = `<p class="muted">Loading ${grade} files…</p>`;
       try{
         const folderRef = ref(storage, `${grade}/`);
         const res = await listAll(folderRef);
-        if(res.items.length===0){ fileList().innerHTML = `<p class="muted">No files yet in ${grade}.</p>`; return; }
+        if(res.items.length===0){
+          $('fileList').innerHTML = `<p class="muted">No files yet in ${grade}.</p>`;
+          return;
+        }
         const grid = document.createElement('div'); grid.className='grid';
         for(const item of res.items){
           const url = await getDownloadURL(item);
-          const a = document.createElement('a'); a.className='file'; a.href=url; a.target='_blank'; a.rel='noopener';
+          const a = document.createElement('a'); a.className='file';
+          a.href=url; a.target='_blank'; a.rel='noopener';
           a.textContent = item.name; grid.appendChild(a);
         }
-        fileList().innerHTML=''; fileList().appendChild(grid);
-      }catch(err){ fileList().innerHTML = `<p class="muted">Failed to load: ${err.message}</p>`; }
+        $('fileList').innerHTML=''; $('fileList').appendChild(grid);
+      }catch(err){
+        $('fileList').innerHTML = `<p class="error">Failed to load: ${err.message}</p>`;
+      }
     }
 
     async function doUpload(){
-      const file = document.getElementById('uploadInput').files[0];
-      const grade = document.getElementById('uploadGrade').value;
+      const file = $('uploadInput').files[0];
+      const grade = $('uploadGrade').value;
       if(!file){ alert('Choose a file first.'); return; }
       const pathRef = ref(storage, `${grade}/${file.name}`);
       await uploadBytes(pathRef, file);
@@ -101,8 +125,8 @@
 
     onAuthStateChanged(auth, user => {
       if(!user){
-        loginBox().classList.remove('hidden');
-        content().classList.add('hidden');
+        show($('loginBox'), true);
+        show($('content'), false);
         return;
       }
       const email = (user.email||'').toLowerCase();
@@ -110,14 +134,15 @@
         alert('Please use your school email (@'+ALLOWED_DOMAIN+').');
         signOut(auth); return;
       }
-      welcome().textContent = `Welcome, ${email}`;
-      loginBox().classList.add('hidden');
-      content().classList.remove('hidden');
-      admin().classList.toggle('hidden', email!==ADMIN_EMAIL);
+      $('welcome').textContent = `Welcome, ${email}`;
+      show($('loginBox'), false);
+      show($('content'), true);
+      $('admin').classList.toggle('hidden', email!==ADMIN_EMAIL);
     });
 
-    // expose
-    window.login = login; window.logout = logout; window.loadFiles = loadFiles; window.doUpload = doUpload;
+    // Expose
+    window.login = login; window.logout = logout;
+    window.loadFiles = loadFiles; window.doUpload = doUpload;
   </script>
 </head>
 <body>
@@ -130,9 +155,10 @@
     <!-- Login -->
     <div id="loginBox" class="card">
       <div class="row">
-        <button onclick="login()">Sign in with Google</button>
+        <button onclick="login()">Sign in with Microsoft</button>
         <span class="muted">Use your <strong>@harmonytx.org</strong> account</span>
       </div>
+      <div id="error" class="error hidden"></div>
     </div>
 
     <!-- Content (after login) -->
