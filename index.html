@@ -28,7 +28,7 @@
   <!-- Firebase SDKs (auth + storage only) -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
-    import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
+    import { getAuth, OAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
     import { getStorage, ref, listAll, getDownloadURL, uploadBytes } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js';
 
     // Your Firebase config (corrected storageBucket domain)
@@ -56,19 +56,18 @@
     const welcome = () => document.getElementById('welcome');
     const fileList = () => document.getElementById('fileList');
 
-    // Use redirect-based sign-in (avoids popup/COOP issues)
-    const provider = new GoogleAuthProvider();
+    // Use Microsoft provider with redirect (avoids popup/COOP issues)
+    const provider = new OAuthProvider('microsoft.com');
+    provider.setCustomParameters({ prompt: 'select_account' });
+
     async function login(){
-      // Prevent duplicate redirects
       if (sessionStorage.getItem('authRedirecting')) return;
       sessionStorage.setItem('authRedirecting','1');
       await signInWithRedirect(auth, provider);
     }
     async function logout(){ await signOut(auth); }
 
-    // Handle redirect result on page load
     getRedirectResult(auth).catch(err => {
-      // Common causes: unauthorized domain, blocked third-party cookies
       console.warn('Redirect error:', err.code, err.message);
     }).finally(() => {
       sessionStorage.removeItem('authRedirecting');
