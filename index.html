@@ -1,1 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>STEM Ms. Chang | Learning Resources</title>
 
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #login, #logout { margin: 10px 0; }
+    .hidden { display: none; }
+    .grade { margin-top: 20px; }
+    .top { display:flex; gap:12px; align-items:center; flex-wrap:wrap }
+    .top h1 { margin:0 }
+    .muted { color:#666 }
+  </style>
+
+  <!-- Firebase v9 CDN（按需导入见下方 <script type="module">） -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js"></script>
+</head>
+<body>
+  <div class="top">
+    <h1>STEM Ms. Chang - Learning Resources</h1>
+    <span class="muted">Harmony Science Academy Lubbock</span>
+  </div>
+
+  <button id="login">Login with Google (@harmonytx.org)</button>
+  <button id="logout" class="hidden">Logout</button>
+  <div id="user" class="hidden"></div>
+
+  <div id="content" class="hidden">
+    <h2>Grade Folders</h2>
+    <div style="margin-bottom:10px">
+      <button onclick="loadFiles('5th')">5th Grade</button>
+      <button onclick="loadFiles('6th')">6th Grade</button>
+      <button onclick="loadFiles('7th')">7th Grade</button>
+      <button onclick="loadFiles('8th')">8th Grade</button>
+    </div>
+
+    <div id="fileList"></div>
+
+    <div id="upload" class="hidden" style="margin-top:24px;">
+      <h3>Upload File (Admin Only)</h3>
+      <select id="gradeSelect">
+        <option value="5th">5th Grade</option>
+        <option value="6th">6th Grade</option>
+        <option value="7th">7th Grade</option>
+        <option value="8th">8th Grade</option>
+      </select>
+      <input type="file" id="fileInput" />
+      <button id="uploadBtn">Upload</button>
+      <div class="muted" style="margin-top:6px">* 文件会上传到对应的 Storage 路径（例如 <code>6th/Unit1.docx</code>）。</div>
+    </div>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+  import { getStorage, ref, listAll, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
+
+  // ✅ 你的项目配置（已替换为你的项目 ID）
+  const firebaseConfig = {
+    apiKey: "AIzaSyDELcdhJKPrSVOGROj-yKl5rSGeNst6Z7k",
+    authDomain: "chang-stem-class--materials.firebaseapp.com",
+    projectId: "chang-stem-class--materials",
+    storageBucket: "chang-stem-class--materials.appspot.com",
+    messagingSenderId: "1066269130031",
+    appId: "1:1066269130031:web:62b518c60d0c724571f5da",
+    measurementId: "G-D4N8JERGV8"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+  const storage = getStorage(app);
+
+  const ADMIN_EMAIL = "xchang@harmonytx.org";
+
+  const loginBtn = document.getElementById('login');
+  const logoutBtn = document.getElementById('logout');
+  const userDiv = document.getElementById('user');
+  const contentDiv = document.getElementById('content');
+  const uploadDiv = document.getElementById('upload');
+  const fileListDiv = document.getElementById('fileList');
+  const uploadBtn = document.getElementById('uploadBtn');
+
+  loginBtn.onclick = () => signInWithPopup(auth, provider);
+  logoutBtn.onclick = () => signOut(auth);
+
+  onAuthStateChanged(auth, async (user) => {
+    if (user && user.email.toLowerCase().endsWith("@harmonytx.org")) {
+      loginBtn.classList.add('hidden');
+      logoutBtn.classList.remove('hidden');
+      userDiv.textContent = `Logged in as ${user.email}`;
+      userDiv.classList.remove('hidden');
+      contentDiv.classList.remove('hidden');
+      uploadDiv.classList.toggle('hidden', user.email.toLowerCase() !== ADMIN_EMAIL);
+      // 默认显示 6th
+      loadFiles('6th');
+    } else {
+      loginBtn.classList.remove('hidden');
+      logoutBtn.classList.add('hidden');
+      userDiv.classList.add('hidden');
+      contentDiv.classList.add('hidden');
+    }
+  });
+
+  // 列出指定年级文件
+  window.loadFiles = async function(grade){
+    fileListDiv.innerHTML = `<h3>${grade} Grade</h3>`;
+    const listRef = ref(storage, grade + "/");
+    try {
+      const res = await listAll(listRef);
+      if (res.items.length === 0) {
+        fileListDiv.innerHTML += `<p>No files yet.</p>`;
+      }
+      for (const itemRef of res.items) {
+        const url = await getDownloadURL(itemRef);
+        const link = document.createElement('a');
+        link.href = url;
+        link.textContent = itemRef.name;
+        link.target = "_blank";
+        fileListDiv.appendChild(link);
+        fileListDiv.appendChild(document.createElement("br"));
+      }
+    } catch (e) {
+      fileListDiv.innerHTML += `<p>No files yet.</p>`;
+    }
+  }
+
+  // 上传（仅管理员）
+  uploadBtn.onclick = async () => {
+    const file = document.getElementById('fileInput').files[0];
+    const grade = document.getElementById('gradeSelect').value;
+    if (!file) { alert("Choose a file first."); return; }
+    const storageRef = ref(storage, `${grade}/${file.name}`);
+    await uploadBytes(storageRef, file);
+    alert("Uploaded!");
+    loadFiles(grade);
+  };
+</script>
+</body>
+</html>
