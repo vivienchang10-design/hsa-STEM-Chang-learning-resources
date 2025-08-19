@@ -1,73 +1,37 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>STEM Ms. Chang | Learning Resources</title>
-  <link rel="icon" href="data:,"><!-- 避免 favicon 404 -->
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STEM Ms. Chang – Learning Resources</title>
+  <!-- Fix COOP for OAuth popups/redirects on Vercel -->
+  <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups" />
+  <link rel="icon" href="/favicon.ico" sizes="any">
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    #login, #logout { margin: 10px 0; }
-    .hidden { display: none; }
-    .grade { margin-top: 20px; }
-    .top { display:flex; gap:12px; align-items:center; flex-wrap:wrap }
-    .top h1 { margin:0 }
-    .muted { color:#666 }
-    .notice { background:#fff7d6; border:1px solid #f1e3a1; padding:8px 12px; border-radius:8px; display:none; }
+    :root{--bg:#0f172a;--card:#111827;--fg:#e5e7eb;--muted:#9ca3af;--accent:#38bdf8;--ok:#34d399}
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    header,main,footer{max-width:960px;margin:0 auto;padding:20px}
+    h1{margin:16px 0 6px;font-size:clamp(24px,5vw,40px)}
+    .card{background:rgba(17,24,39,.85);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px}
+    .muted{color:var(--muted)}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    button,select,input[type=file]{background:var(--accent);color:#05253a;border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+    button.secondary{background:transparent;color:var(--fg);border:1px solid rgba(255,255,255,.18)}
+    .hidden{display:none}
+    .grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:10px}
+    @media(min-width:720px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    a.file{display:flex;gap:10px;align-items:center;padding:12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08)}
+    a.file:hover{border-color:rgba(56,189,248,.6)}
+    .tag{display:inline-block;margin-top:10px;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--muted)}
   </style>
-</head>
-<body>
-  <div class="top">
-    <h1>STEM Ms. Chang - Learning Resources</h1>
-    <span class="muted">Harmony Science Academy Lubbock</span>
-  </div>
-
-  <div id="domainNotice" class="notice">
-    Your domain is not authorized for Google Sign-In. Please add this site’s domain to
-    <strong>Firebase Console → Authentication → Settings → Authorized domains</strong>, then refresh.
-  </div>
-
-  <button id="login">Login with Google (@harmonytx.org)</button>
-  <button id="logout" class="hidden">Logout</button>
-  <div id="user" class="hidden"></div>
-
-  <div id="content" class="hidden">
-    <h2>Grade Folders</h2>
-    <div style="margin-bottom:10px">
-      <button onclick="loadFiles('5th')">5th Grade</button>
-      <button onclick="loadFiles('6th')">6th Grade</button>
-      <button onclick="loadFiles('7th')">7th Grade</button>
-      <button onclick="loadFiles('8th')">8th Grade</button>
-    </div>
-
-    <div id="fileList"></div>
-
-    <div id="upload" class="hidden" style="margin-top:24px;">
-      <h3>Upload File (Admin Only)</h3>
-      <select id="gradeSelect">
-        <option value="5th">5th Grade</option>
-        <option value="6th">6th Grade</option>
-        <option value="7th">7th Grade</option>
-        <option value="8th">8th Grade</option>
-      </select>
-      <input type="file" id="fileInput" />
-      <button id="uploadBtn">Upload</button>
-      <div class="muted" style="margin-top:6px">* Files upload to paths like <code>6th/Unit1.docx</code>.</div>
-    </div>
-  </div>
-
-  <!-- 使用 ESM（模块）方式导入 Firebase v9 SDK —— 不要再放 <script src="...firebase-*.js"> -->
+  <!-- Firebase SDKs (auth + storage only) -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import {
-      getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-    import {
-      getStorage, ref, listAll, getDownloadURL, uploadBytes
-    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
+    import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
+    import { getStorage, ref, listAll, getDownloadURL, uploadBytes } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js';
 
-    // ✅ 你的项目配置（已按你提供的值）
+    // Your Firebase config (corrected storageBucket domain)
     const firebaseConfig = {
       apiKey: "AIzaSyDELcdhJKPrSVOGROj-yKl5rSGeNst6Z7k",
       authDomain: "chang-stem-class--materials.firebaseapp.com",
@@ -80,93 +44,134 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
     const storage = getStorage(app);
 
-    const ADMIN_EMAIL = "xchang@harmonytx.org";
+    const ADMIN_EMAIL = 'xchang@harmonytx.org';
+    const ALLOWED_DOMAIN = 'harmonytx.org';
 
-    // UI 元素
-    const loginBtn   = document.getElementById('login');
-    const logoutBtn  = document.getElementById('logout');
-    const userDiv    = document.getElementById('user');
-    const contentDiv = document.getElementById('content');
-    const uploadDiv  = document.getElementById('upload');
-    const fileListDiv= document.getElementById('fileList');
-    const uploadBtn  = document.getElementById('uploadBtn');
-    const domainNote = document.getElementById('domainNotice');
+    // --- UI elements ---
+    const loginBox = () => document.getElementById('loginBox');
+    const content = () => document.getElementById('content');
+    const admin = () => document.getElementById('admin');
+    const welcome = () => document.getElementById('welcome');
+    const fileList = () => document.getElementById('fileList');
 
-    // 登录/登出
-    loginBtn.onclick = async () => {
-      try {
-        await signInWithPopup(auth, provider);
-      } catch (e) {
-        // 未授权域名时，Firebase 会报 auth/unauthorized-domain
-        if (String(e?.code).includes('auth/unauthorized-domain')) {
-          domainNote.style.display = 'block';
-        }
-        console.error(e);
-        alert(e.message || e);
-      }
-    };
-    logoutBtn.onclick = () => signOut(auth);
+    // Use redirect-based sign-in (avoids popup/COOP issues)
+    const provider = new GoogleAuthProvider();
+    async function login(){
+      // Prevent duplicate redirects
+      if (sessionStorage.getItem('authRedirecting')) return;
+      sessionStorage.setItem('authRedirecting','1');
+      await signInWithRedirect(auth, provider);
+    }
+    async function logout(){ await signOut(auth); }
 
-    // 登录状态变化
-    onAuthStateChanged(auth, async (user) => {
-      if (user && user.email && user.email.toLowerCase().endsWith("@harmonytx.org")) {
-        loginBtn.classList.add('hidden');
-        logoutBtn.classList.remove('hidden');
-        userDiv.textContent = `Logged in as ${user.email}`;
-        userDiv.classList.remove('hidden');
-        contentDiv.classList.remove('hidden');
-        uploadDiv.classList.toggle('hidden', user.email.toLowerCase() !== ADMIN_EMAIL);
-        // 默认加载 6th
-        loadFiles('6th');
-      } else {
-        loginBtn.classList.remove('hidden');
-        logoutBtn.classList.add('hidden');
-        userDiv.classList.add('hidden');
-        contentDiv.classList.add('hidden');
-      }
+    // Handle redirect result on page load
+    getRedirectResult(auth).catch(err => {
+      // Common causes: unauthorized domain, blocked third-party cookies
+      console.warn('Redirect error:', err.code, err.message);
+    }).finally(() => {
+      sessionStorage.removeItem('authRedirecting');
     });
 
-    // 列出指定年级文件
-    window.loadFiles = async function(grade){
-      fileListDiv.innerHTML = `<h3>${grade} Grade</h3>`;
-      const listRef = ref(storage, `${grade}/`);
-      try {
-        const res = await listAll(listRef);
-        if (res.items.length === 0) {
-          fileListDiv.innerHTML += `<p>No files yet.</p>`;
+    async function loadFiles(grade){
+      fileList().innerHTML = `<p class="muted">Loading ${grade} files…</p>`;
+      try{
+        const folderRef = ref(storage, `${grade}/`);
+        const res = await listAll(folderRef);
+        if(res.items.length===0){ fileList().innerHTML = `<p class="muted">No files yet in ${grade}.</p>`; return; }
+        const grid = document.createElement('div'); grid.className='grid';
+        for(const item of res.items){
+          const url = await getDownloadURL(item);
+          const a = document.createElement('a'); a.className='file'; a.href=url; a.target='_blank'; a.rel='noopener';
+          a.textContent = item.name; grid.appendChild(a);
         }
-        for (const itemRef of res.items) {
-          const url = await getDownloadURL(itemRef);
-          const link = document.createElement('a');
-          link.href = url;
-          link.textContent = itemRef.name;
-          link.target = "_blank";
-          fileListDiv.appendChild(link);
-          fileListDiv.appendChild(document.createElement("br"));
-        }
-      } catch (e) {
-        fileListDiv.innerHTML += `<p>No files yet.</p>`;
-      }
+        fileList().innerHTML=''; fileList().appendChild(grid);
+      }catch(err){ fileList().innerHTML = `<p class="muted">Failed to load: ${err.message}</p>`; }
     }
 
-    // 上传（仅管理员）
-    uploadBtn.onclick = async () => {
-      const file  = document.getElementById('fileInput').files[0];
-      const grade = document.getElementById('gradeSelect').value;
-      if (!file) { alert("Choose a file first."); return; }
-      try {
-        const storageRef = ref(storage, `${grade}/${file.name}`);
-        await uploadBytes(storageRef, file);
-        alert("Uploaded!");
-        loadFiles(grade);
-      } catch (e) {
-        console.error(e);
-        alert(e.message || e);
+    async function doUpload(){
+      const file = document.getElementById('uploadInput').files[0];
+      const grade = document.getElementById('uploadGrade').value;
+      if(!file){ alert('Choose a file first.'); return; }
+      const pathRef = ref(storage, `${grade}/${file.name}`);
+      await uploadBytes(pathRef, file);
+      alert('Uploaded!');
+      loadFiles(grade);
+    }
+
+    onAuthStateChanged(auth, user => {
+      if(!user){
+        loginBox().classList.remove('hidden');
+        content().classList.add('hidden');
+        return;
       }
-    };
+      const email = (user.email||'').toLowerCase();
+      if(!email.endsWith('@'+ALLOWED_DOMAIN)){
+        alert('Please use your school email (@'+ALLOWED_DOMAIN+').');
+        signOut(auth); return;
+      }
+      welcome().textContent = `Welcome, ${email}`;
+      loginBox().classList.add('hidden');
+      content().classList.remove('hidden');
+      admin().classList.toggle('hidden', email!==ADMIN_EMAIL);
+    });
+
+    // expose
+    window.login = login; window.logout = logout; window.loadFiles = loadFiles; window.doUpload = doUpload;
   </script>
+</head>
+<body>
+  <header>
+    <h1>STEM Ms. Chang – Learning Resources</h1>
+    <p class="muted">Grades 5–8 • Harmony Science Academy Lubbock • Sign in with your school email to access downloads</p>
+  </header>
+
+  <main>
+    <!-- Login -->
+    <div id="loginBox" class="card">
+      <div class="row">
+        <button onclick="login()">Sign in with Google</button>
+        <span class="muted">Use your <strong>@harmonytx.org</strong> account</span>
+      </div>
+    </div>
+
+    <!-- Content (after login) -->
+    <div id="content" class="card hidden">
+      <div class="row">
+        <span id="welcome"></span>
+        <button class="secondary" onclick="logout()">Sign out</button>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <strong>Select grade:</strong>
+        <button onclick="loadFiles('5th')">5th</button>
+        <button onclick="loadFiles('6th')">6th</button>
+        <button onclick="loadFiles('7th')">7th</button>
+        <button onclick="loadFiles('8th')">8th</button>
+      </div>
+      <div id="fileList" style="margin-top:12px"></div>
+
+      <!-- Admin only: upload -->
+      <div id="admin" class="hidden" style="margin-top:14px">
+        <hr style="border-color:rgba(255,255,255,.15)">
+        <div class="row">
+          <strong>Upload (admin only)</strong>
+          <select id="uploadGrade">
+            <option value="5th">5th</option>
+            <option value="6th">6th</option>
+            <option value="7th">7th</option>
+            <option value="8th">8th</option>
+          </select>
+          <input type="file" id="uploadInput" />
+          <button onclick="doUpload()" style="background:var(--ok)">Upload</button>
+        </div>
+        <span class="tag">Admin: xchang@harmonytx.org</span>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="muted">© 2025 STEM Ms. Chang • Harmony Science Academy Lubbock</div>
+  </footer>
 </body>
 </html>
