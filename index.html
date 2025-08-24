@@ -1,45 +1,110 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>STEM Ms. Chang – Learning Resources</title>
-  <!-- Inline favicon to avoid /favicon.ico 404 -->
-  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="%230f172a"/><circle cx="64" cy="64" r="44" fill="%2338bdf8"/><text x="64" y="78" font-size="48" text-anchor="middle" fill="%23052538" font-family="Arial" font-weight="700">SC</text></svg>' />
-  <!-- Help popup auth on Vercel; console warning is harmless -->
-  <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups" />
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>STEM Ms Chang — Learning Resources</title>
+  <!-- 内联一个小图标，避免 /favicon.ico 404 -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23007bff'/%3E%3Ctext x='50' y='58' font-size='52' text-anchor='middle' fill='white' font-family='Arial,Helvetica,sans-serif'%3ES%3C/text%3E%3C/svg%3E">
   <style>
-    :root{--bg:#0f172a;--card:#111827;--fg:#e5e7eb;--muted:#9ca3af;--accent:#38bdf8;--ok:#34d399;--warn:#fbbf24;--err:#f87171}
+    :root{
+      --bg:#0b1020;--card:#121931;--card2:#10172a;--text:#e7eaf6;--muted:#9fb0d2;
+      --accent:#3b82f6;--ok:#10b981;--warn:#f59e0b;--bad:#ef4444
+    }
     *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-    header,main,footer{max-width:960px;margin:0 auto;padding:20px}
-    h1{margin:16px 0 6px;font-size:clamp(24px,5vw,40px)}
-    .card{background:rgba(17,24,39,.85);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px}
-    .muted{color:var(--muted)}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    button,select,input[type=file]{background:var(--accent);color:#05253a;border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
-    button.secondary{background:transparent;color:var(--fg);border:1px solid rgba(255,255,255,.18)}
-    button[disabled]{opacity:.5;cursor:not-allowed}
-    .hidden{display:none}
-    .grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:10px}
-    @media(min-width:720px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    a.file{display:flex;gap:10px;align-items:center;padding:12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08)}
-    a.file:hover{border-color:rgba(56,189,248,.6)}
-    .tag{display:inline-block;margin-top:10px;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--muted)}
-    .alert{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px solid transparent}
-    .alert.warn{background:#513c0022;border-color:#fbbf2422}
-    .alert.err{background:#7f1d1d33;border-color:#fecaca33}
-    code{background:rgba(255,255,255,.08);border-radius:6px;padding:1px 6px}
+    body{margin:0;background:linear-gradient(180deg,#0b1020,#0a0f1e);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;min-height:100vh}
+    header{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid #1e2746;background:rgba(18,25,49,.8);backdrop-filter:blur(6px);position:sticky;top:0;z-index:10}
+    .brand{display:flex;gap:12px;align-items:center}
+    .badge{background:#1a2240;border:1px solid #2a3764;padding:6px 10px;border-radius:12px;color:var(--muted);font-size:12px}
+    .main{display:grid;grid-template-columns:260px 1fr;gap:18px;padding:18px;max-width:1200px;margin:0 auto}
+    .side{background:var(--card);border:1px solid #1e2746;border-radius:14px;padding:14px}
+    .content{background:var(--card);border:1px solid #1e2746;border-radius:14px;padding:16px;min-height:60vh}
+    h1{font-size:18px;margin:0}
+    .muted{color:var(--muted);font-size:13px}
+    .btn{cursor:pointer;background:var(--accent);color:white;border:none;border-radius:10px;padding:10px 14px;font-weight:600}
+    .btn.secondary{background:#24314f}
+    .btn.ghost{background:transparent;border:1px solid #2a3764}
+    .grades{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+    .grade{padding:8px 12px;border-radius:10px;border:1px solid #2a3764;background:#0f1935;cursor:pointer}
+    .grade.active{background:#1d2a52;border-color:#3b82f6}
+    .items{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:10px}
+    .card{background:var(--card2);border:1px solid #1e2746;border-radius:12px;padding:12px}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .tag{font-size:12px;color:var(--muted);background:#0d142b;border:1px solid #1d2850;padding:4px 8px;border-radius:999px}
+    .link{color:#cfe2ff;text-decoration:none}
+    .link:hover{text-decoration:underline}
+    .hidden{display:none !important}
+    .admin{margin-top:14px;border-top:1px dashed #2a3764;padding-top:12px}
+    input[type=\"text\"]{background:#0d142b;color:var(--text);border:1px solid #2a3764;border-radius:10px;padding:8px 10px;width:100%}
+    input[type=\"file\"]{color:var(--muted)}
+    .crumb{color:var(--muted);font-size:13px}
+    .crumb b{color:#cbd9ff}
+    .notice{margin:14px 0;padding:10px;border-radius:10px;background:#0f1b33;border:1px solid #25345e;color:#cfe2ff}
   </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div>
+        <h1>STEM Ms Chang — Learning Resources</h1>
+        <div class="muted">Harmony Science Academy, Lubbock — STEM Teacher K–8</div>
+      </div>
+    </div>
+    <div>
+      <span id="who" class="badge">Signed out</span>
+      <button id="loginBtn" class="btn">Sign in with Google</button>
+      <button id="logoutBtn" class="btn ghost hidden">Sign out</button>
+    </div>
+  </header>
 
-  <!-- Firebase SDKs (v9 modular, stable) -->
+  <div class="main">
+    <aside class="side">
+      <div class="muted">Grades</div>
+      <div id="grades" class="grades"></div>
+
+      <div class="admin hidden" id="adminPanel">
+        <div class="muted" style="margin-bottom:6px;">Admin tools</div>
+        <div class="notice">You are signed in as <b id="adminEmail"></b>. You can upload and create folders.</div>
+
+        <label class="muted">Create folder inside current path</label>
+        <div style="display:flex; gap:8px; margin:6px 0 12px;">
+          <input id="newFolderName" type="text" placeholder="e.g. Unit 1" />
+          <button class="btn secondary" id="createFolderBtn">+ Folder</button>
+        </div>
+
+        <label class="muted">Upload file to current path</label>
+        <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+          <input type="file" id="fileInput" />
+          <button class="btn secondary" id="uploadBtn">Upload</button>
+        </div>
+      </div>
+    </aside>
+
+    <section class="content">
+      <div id="needLogin" class="notice">
+        Please <b>sign in with Google</b> to view and download class materials.
+      </div>
+
+      <div id="app" class="hidden">
+        <div class="crumb">Path: <b id="pathLabel">5th/</b></div>
+        <div id="folders" class="items"></div>
+        <div id="files" class="items"></div>
+      </div>
+    </section>
+  </div>
+
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
-    import { getStorage, ref, listAll, getDownloadURL, uploadBytes } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js';
+    // ==== Firebase SDK (v10) ====
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import {
+      getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged,
+      signOut, setPersistence, browserLocalPersistence
+    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+    import {
+      getStorage, ref, listAll, getDownloadURL, uploadBytes, deleteObject
+    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
 
-    // === Firebase config (make sure storageBucket ends in appspot.com) ===
+    // ==== Your Firebase config (修正了 storageBucket 为 appspot.com) ====
     const firebaseConfig = {
       apiKey: "AIzaSyDELcdhJKPrSVOGROj-yKl5rSGeNst6Z7k",
       authDomain: "chang-stem-class--materials.firebaseapp.com",
@@ -50,159 +115,203 @@
       measurementId: "G-D4N8JERGV8"
     };
 
+    // ==== App init ====
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
     const storage = getStorage(app);
 
-    // Admin email (only this account can upload/delete)
-    const ADMIN_EMAIL = 'vivien.chang10@gmail.com';
+    // 持久化登录
+    await setPersistence(auth, browserLocalPersistence);
 
-    const $ = (id) => document.getElementById(id);
-    const show = (el, on=true) => el.classList.toggle('hidden', !on);
+    // ==== Simple state ====
+    const ADMIN_EMAILS = new Set(["vivien.chang10@gmail.com"]);
+    const GRADES = ["5th","6th","7th","8th"];
+    let currentPath = "5th/"; // 默认路径
+    let isAdmin = false;
 
-    const gradeBtns = [ 'btn5','btn6','btn7','btn8' ].map(id=>$(id));
-    function setGradeButtonsDisabled(disabled){
-      gradeBtns.forEach(b=> b.disabled = !!disabled);
+    // ==== UI refs ====
+    const whoEl = document.getElementById("who");
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const gradesEl = document.getElementById("grades");
+    const needLoginEl = document.getElementById("needLogin");
+    const appEl = document.getElementById("app");
+    const pathLabel = document.getElementById("pathLabel");
+    const foldersEl = document.getElementById("folders");
+    const filesEl = document.getElementById("files");
+    const adminPanel = document.getElementById("adminPanel");
+    const adminEmail = document.getElementById("adminEmail");
+    const newFolderName = document.getElementById("newFolderName");
+    const createFolderBtn = document.getElementById("createFolderBtn");
+    const fileInput = document.getElementById("fileInput");
+    const uploadBtn = document.getElementById("uploadBtn");
+
+    // ==== Helpers ====
+    function el(tag, attrs={}, children=[]) {
+      const e = document.createElement(tag);
+      Object.entries(attrs).forEach(([k,v]) => {
+        if (k === "class") e.className = v;
+        else if (k === "onclick") e.addEventListener("click", v);
+        else e.setAttribute(k, v);
+      });
+      children.forEach(c => e.append(c));
+      return e;
+    }
+    function setActiveGrade(grade) {
+      currentPath = grade.endsWith("/") ? grade : grade + "/";
+      pathLabel.textContent = currentPath;
+      [...gradesEl.children].forEach(ch => ch.classList.toggle("active", ch.dataset.g === grade));
+      loadPath(currentPath);
+    }
+    function renderGrades() {
+      gradesEl.innerHTML = "";
+      GRADES.forEach(g => {
+        const btn = el("button", { class: "grade" + (g==="5th"?" active":""), "data-g": g, onclick: () => setActiveGrade(g) }, [g]);
+        gradesEl.append(btn);
+      });
+    }
+    function renderFolderCard(name, click) {
+      return el("div",{class:"card"},[
+        el("div",{class:"row"},[
+          el("div",{},[ "📁 ", el("b",{},[name]) ]),
+          el("button",{class:"btn ghost",onclick:click},["Open"])
+        ])
+      ]);
+    }
+    function renderFileCard(name, open) {
+      const ext = name.split(".").pop()?.toUpperCase() || "";
+      return el("div",{class:"card"},[
+        el("div",{class:"row"},[
+          el("div",{},[ "📄 ", el("b",{},[name]) ]),
+          el("span",{class:"tag"},[ext])
+        ]),
+        el("div",{style:"margin-top:8px"},[
+          el("a",{href:"#",class:"link",onclick:(e)=>{e.preventDefault();open();}},["Open / Download"])
+        ])
+      ]);
     }
 
-    // Disable grade buttons until signed in
-    setGradeButtonsDisabled(true);
+    async function loadPath(path) {
+      foldersEl.innerHTML = "";
+      filesEl.innerHTML = "";
+      const dirRef = ref(storage, path);
+      try {
+        const { prefixes, items } = await listAll(dirRef);
 
-    // Google popup auth
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
+        // 子文件夹
+        if (prefixes.length) {
+          prefixes.forEach(p => {
+            const folderName = p.name; // child name
+            const card = renderFolderCard(folderName, () => {
+              // 进入子目录
+              currentPath = path + folderName + "/";
+              pathLabel.textContent = currentPath;
+              loadPath(currentPath);
+            });
+            foldersEl.append(card);
+          });
+        }
 
-    async function login(){
-      $('error').textContent = '';
-      show($('errorWrap'), false);
+        // 文件
+        if (items.length) {
+          for (const it of items) {
+            const name = it.name;
+            // 跳过我们用于创建空目录的占位文件
+            if (name === ".keep") continue;
+            const card = renderFileCard(name, async () => {
+              const url = await getDownloadURL(it);
+              // 新窗口打开
+              window.open(url, "_blank", "noopener,noreferrer");
+            });
+            filesEl.append(card);
+          }
+        }
+
+        if (!prefixes.length && !items.length) {
+          filesEl.append(el("div",{class:"muted"},["This folder is empty."]));
+        }
+      } catch (err) {
+        console.error(err);
+        filesEl.append(el("div",{class:"notice"},["Failed to load. Check rules and path."]));
+      }
+    }
+
+    // ==== Auth ====
+    loginBtn.onclick = async () => {
       try {
         await signInWithPopup(auth, provider);
       } catch (e) {
-        show($('errorWrap'), true);
-        $('error').textContent = `${e.code || 'auth/error'}: ${e.message}`;
+        console.error(e);
+        alert("Sign-in failed. See console for details.");
       }
-    }
+    };
+    logoutBtn.onclick = async () => {
+      await signOut(auth);
+    };
 
-    async function logout(){ await signOut(auth); }
-
-    async function loadFiles(grade){
-      $('fileList').innerHTML = `<p class="muted">Loading ${grade} files…</p>`;
-      try{
-        const folderRef = ref(storage, `${grade}/`);
-        const res = await listAll(folderRef);
-        if(res.items.length===0){
-          $('fileList').innerHTML = `<div class="alert warn">No files yet in <b>${grade}</b>.<br>Upload as admin or try another grade.</div>`;
-          return;
-        }
-        const grid = document.createElement('div'); grid.className='grid';
-        for(const item of res.items){
-          const url = await getDownloadURL(item);
-          const a = document.createElement('a'); a.className='file';
-          a.href=url; a.target='_blank'; a.rel='noopener';
-          a.textContent = item.name; grid.appendChild(a);
-        }
-        $('fileList').innerHTML=''; $('fileList').appendChild(grid);
-      }catch(err){
-        let msg = err && err.message ? err.message : String(err);
-        // Most common pseudo-CORS cause is Storage Rules deny (403), show actionable help
-        const hint = `If you see CORS/Preflight errors, fix Storage Rules:\n`+
-          `Firebase → Build → Storage → Rules →\n`+
-          `  allow read: if request.auth != null;\n`+
-          `  allow write: if request.auth != null && request.auth.token.email == "${ADMIN_EMAIL}";`;
-        $('fileList').innerHTML = `<div class="alert err"><b>Failed to load ${grade}:</b> ${msg}<br><br><small>${hint.replace(/\n/g,'<br>')}</small></div>`;
-      }
-    }
-
-    async function doUpload(){
-      const file = $('uploadInput').files[0];
-      const grade = $('uploadGrade').value;
-      if(!file){ alert('Choose a file first.'); return; }
-      try{
-        const pathRef = ref(storage, `${grade}/${file.name}`);
-        await uploadBytes(pathRef, file);
-        alert('Uploaded!');
-        loadFiles(grade);
-      }catch(err){
-        show($('errorWrap'), true);
-        $('error').textContent = `Upload failed: ${err && err.message ? err.message : err}`;
-      }
-    }
-
-    onAuthStateChanged(auth, user => {
-      if(!user){
-        show($('loginBox'), true);
-        show($('content'), false);
-        setGradeButtonsDisabled(true);
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        whoEl.textContent = "Signed out";
+        loginBtn.classList.remove("hidden");
+        logoutBtn.classList.add("hidden");
+        needLoginEl.classList.remove("hidden");
+        appEl.classList.add("hidden");
+        adminPanel.classList.add("hidden");
         return;
       }
-      const email = (user.email||'').toLowerCase();
-      $('welcome').textContent = `Welcome, ${email}`;
-      show($('loginBox'), false);
-      show($('content'), true);
-      setGradeButtonsDisabled(false);
-      $('admin').classList.toggle('hidden', email!==ADMIN_EMAIL);
+      whoEl.textContent = "Signed in as " + (user.email || user.uid);
+      loginBtn.classList.add("hidden");
+      logoutBtn.classList.remove("hidden");
+      needLoginEl.classList.add("hidden");
+      appEl.classList.remove("hidden");
+
+      isAdmin = ADMIN_EMAILS.has(user.email || "");
+      adminPanel.classList.toggle("hidden", !isAdmin);
+      if (isAdmin) adminEmail.textContent = user.email || "";
+
+      // 初次加载
+      renderGrades();
+      setActiveGrade(currentPath.replace("/","")); // 保持在 5th
     });
 
-    // Expose handlers
-    window.login = login; window.logout = logout; window.loadFiles = loadFiles; window.doUpload = doUpload;
+    // ==== Admin actions ====
+    createFolderBtn.onclick = async () => {
+      if (!isAdmin) return;
+      const name = (newFolderName.value || "").trim().replace(/\\/+$/,"");
+      if (!name) { alert("Folder name required"); return; }
+      // 通过上传一个占位 .keep 文件来“创建目录”
+      const keepRef = ref(storage, currentPath + name + "/.keep");
+      const blob = new Blob(["keep"], { type: "text/plain" });
+      try {
+        await uploadBytes(keepRef, blob, { contentType: "text/plain" });
+        newFolderName.value = "";
+        await loadPath(currentPath);
+        alert("Folder created.");
+      } catch (e) {
+        console.error(e);
+        alert("Failed to create folder.");
+      }
+    };
+
+    uploadBtn.onclick = async () => {
+      if (!isAdmin) return;
+      const f = fileInput.files?.[0];
+      if (!f) { alert("Choose a file first."); return; }
+      const fileRef = ref(storage, currentPath + f.name);
+      try {
+        await uploadBytes(fileRef, f, { contentType: f.type || "application/octet-stream" });
+        fileInput.value = "";
+        await loadPath(currentPath);
+        alert("Uploaded.");
+      } catch (e) {
+        console.error(e);
+        alert("Upload failed. Check Storage rules & login email.");
+      }
+    };
+
+    // 页面初始：渲染年级标签，但不显示内容，等待登录
+    renderGrades();
   </script>
-</head>
-<body>
-  <header>
-    <h1>STEM Ms. Chang – Learning Resources</h1>
-    <p class="muted">Grades 5–8 • Sign in to access downloads • Admin uploads with Gmail</p>
-  </header>
-
-  <main>
-    <!-- Sign in card -->
-    <div id="loginBox" class="card">
-      <div class="row">
-        <button onclick="login()">Sign in with Google</button>
-        <span class="muted">Sign in first, then choose a grade below.</span>
-      </div>
-      <div id="errorWrap" class="alert err hidden"><span id="error"></span></div>
-      <div class="alert warn" style="margin-top:8px">
-        If you see <code>auth/unauthorized-domain</code>, add your domain in<br>
-        <b>Firebase → Authentication → Settings → Authorized domains</b><br>
-        e.g. <code>hsa-stem-chang-learning-resources.vercel.app</code>
-      </div>
-    </div>
-
-    <!-- Content after sign-in -->
-    <div id="content" class="card hidden">
-      <div class="row">
-        <span id="welcome"></span>
-        <button class="secondary" onclick="logout()">Sign out</button>
-      </div>
-      <div class="row" style="margin-top:10px">
-        <strong>Select grade:</strong>
-        <button id="btn5" onclick="loadFiles('5th')">5th</button>
-        <button id="btn6" onclick="loadFiles('6th')">6th</button>
-        <button id="btn7" onclick="loadFiles('7th')">7th</button>
-        <button id="btn8" onclick="loadFiles('8th')">8th</button>
-      </div>
-      <div id="fileList" style="margin-top:12px"></div>
-
-      <div id="admin" class="hidden" style="margin-top:14px">
-        <hr style="border-color:rgba(255,255,255,.15)">
-        <div class="row">
-          <strong>Upload (admin only)</strong>
-          <select id="uploadGrade">
-            <option value="5th">5th</option>
-            <option value="6th">6th</option>
-            <option value="7th">7th</option>
-            <option value="8th">8th</option>
-          </select>
-          <input type="file" id="uploadInput" />
-          <button onclick="doUpload()" style="background:var(--ok)">Upload</button>
-        </div>
-        <span class="tag">Admin: vivien.chang10@gmail.com</span>
-      </div>
-    </div>
-  </main>
-
-  <footer>
-    <div class="muted">© 2025 STEM Ms. Chang • Learning Resources</div>
-  </footer>
 </body>
 </html>
