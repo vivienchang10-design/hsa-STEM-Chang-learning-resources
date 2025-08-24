@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta http-equiv="Cache-Control" content="no-store" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>STEM Ms. Chang – Learning Resources</title>
-  <!-- 避免 /favicon.ico 404 -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext y='24' font-size='24'%3E🔬%3C/text%3E%3C/svg%3E">
   <style>
     body{font-family:system-ui,Arial,Helvetica,sans-serif;margin:0;background:#f7f7fb;color:#222}
@@ -25,6 +25,7 @@
     .file{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px dashed #eee}
     .file:last-child{border-bottom:0}
     .note{background:#fff8e1;border:1px solid #fde68a;border-radius:10px;padding:10px}
+    code.badge{background:#eef2ff;padding:2px 6px;border-radius:6px;border:1px solid #c7d2fe}
   </style>
 </head>
 <body>
@@ -40,11 +41,16 @@
   </header>
 
   <main>
+    <div class="card">
+      <div>Current site origin: <code class="badge" id="origin"></code></div>
+      <div class="muted" style="margin-top:6px">
+        Make sure this exact domain is in
+        Firebase → Authentication → Settings → Authorized domains.
+      </div>
+    </div>
+
     <div id="needAuth" class="card">
       <div class="note">Please sign in with Google to view and download class materials.</div>
-      <div class="muted" style="margin-top:8px">Tip: make sure your site URL
-        <code>hsa-stem-chang-learning-resources.vercel.app</code> is in Firebase → Authentication → Settings → Authorized domains.
-      </div>
     </div>
 
     <div id="authedArea" class="hidden">
@@ -65,17 +71,17 @@
     </div>
   </main>
 
-  <!-- Firebase v11 模块化 SDK（官方 CDN） -->
+  <!-- Firebase v11 模块化 SDK（CDN） -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import {
-      getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut
+      getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
     import {
       getStorage, ref, listAll, getDownloadURL
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
-    // ==== 你的 Firebase 配置（保持 appspot.com 作 storageBucket）====
+    // === 你的 Firebase 配置：storageBucket 必须是 appspot.com ===
     const firebaseConfig = {
       apiKey: "AIzaSyDELcdhJKPrSVOGROj-yKl5rSGeNst6Z7k",
       authDomain: "chang-stem-class--materials.firebaseapp.com",
@@ -86,13 +92,18 @@
       measurementId: "G-D4N8JERGV8"
     };
 
-    // ==== 初始化 ====
+    // === 初始化 ===
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
     const storage = getStorage(app);
 
-    // ==== 元素 ====
+    // 持久化登录
+    setPersistence(auth, browserLocalPersistence).catch(()=>{});
+
+    // 元素
+    const originEl = document.getElementById("origin");
+    originEl.textContent = location.host;
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
     const needAuth = document.getElementById("needAuth");
@@ -112,7 +123,7 @@
     };
     logoutBtn.onclick = async () => { await signOut(auth); };
 
-    // 只在登录后列出文件（避免未授权引起的“像 CORS”的 403）
+    // 监听登录状态：只有登录后才显示按钮 & 允许访问
     onAuthStateChanged(auth, (user) => {
       if (user) {
         loginBtn.classList.add("hidden");
@@ -125,13 +136,17 @@
         logoutBtn.classList.add("hidden");
         needAuth.classList.remove("hidden");
         authedArea.classList.add("hidden");
-        listEl.innerHTML = "<div class='muted'>Select a grade after signing in.</div>";
+        listEl.innerHTML = "<div class='muted'>Sign in first.</div>";
       }
     });
 
-    // 绑定年级按钮
+    // 绑定年级按钮（再次保护：未登录就不请求）
     document.querySelectorAll("[data-grade]").forEach(btn => {
       btn.addEventListener("click", async () => {
+        if (!auth.currentUser) {
+          alert("Please sign in first.");
+          return;
+        }
         const grade = btn.getAttribute("data-grade");
         await renderGrade(grade);
       });
@@ -142,12 +157,10 @@
       listEl.innerHTML = "";
       try {
         const rootRef = ref(storage, `${grade}/`);
-        // 只列“这一层”，不递归，简单可靠
         const res = await listAll(rootRef);
 
         const container = document.createElement("div");
 
-        // 子文件夹
         if (res.prefixes.length) {
           const h = document.createElement("div");
           h.className = "folder";
@@ -162,7 +175,6 @@
           });
         }
 
-        // 当前层文件
         if (res.items.length) {
           const h2 = document.createElement("div");
           h2.className = "folder";
@@ -186,7 +198,6 @@
 
         listEl.appendChild(container);
 
-        // 点击“Open”进入子文件夹（再次 listAll）
         listEl.querySelectorAll("[data-sub]").forEach(a => {
           a.addEventListener("click", async (e) => {
             e.preventDefault();
@@ -198,7 +209,8 @@
         statusEl.textContent = "";
       } catch (e) {
         console.error(e);
-        statusEl.textContent = "Failed to load. Check Firebase rules / App Check (should be Unenforced) and Authorized domains.";
+        statusEl.textContent =
+          "Failed to load. Check: Authorized domains, App Check (Unenforced), Storage rules, and make sure you are signed in.";
       }
     }
 
