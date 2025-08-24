@@ -4,15 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>STEM Ms. Chang — Learning Resources</title>
-
-  <!-- 用内嵌 SVG 做 favicon，避免 404 -->
+  <!-- 内嵌 favicon，避免 404 -->
   <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#4F46E5"/><text x="50%" y="55%" text-anchor="middle" font-size="36" font-family="Arial" fill="white">S</text></svg>'>
-
   <style>
     :root { --bg:#0b1020; --card:#111833; --muted:#99a3c7; --fg:#e8ecff; --brand:#4F46E5; }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    a{color:inherit}
     .wrap{max-width:980px;margin:24px auto;padding:0 16px}
     .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;box-shadow:0 6px 30px rgba(0,0,0,.25)}
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -73,7 +70,7 @@
     </div>
   </div>
 
-  <!-- Firebase + 页面逻辑 -->
+  <!-- Firebase + 逻辑（回退到 firebasestorage.app 桶） -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -82,30 +79,25 @@
       getMetadata, deleteObject
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-    // ========= Firebase 配置（将 storageBucket 设为 appspot.com 版本）=========
+    // === 用你“能跑”的 firebasestorage.app ===
     const firebaseConfig = {
       apiKey: "AIzaSyDELcdhJKPrSVOGROj-yKl5rSGeNst6Z7k",
       authDomain: "chang-stem-class--materials.firebaseapp.com",
       projectId: "chang-stem-class--materials",
-      storageBucket: "chang-stem-class--materials.appspot.com", // ★ 推荐用 appspot.com
+      storageBucket: "chang-stem-class--materials.firebasestorage.app", // ← 保持这个
       messagingSenderId: "1066269130031",
       appId: "1:1066269130031:web:62b518c60d0c724571f5da",
       measurementId: "G-D4N8JERGV8"
     };
 
-    // 如果你确认必须用 firebasestorage.app（并且测试确实可用），就把上面一行改为：
-    // storageBucket: "chang-stem-class--materials.firebasestorage.app"
-
     const app = initializeApp(firebaseConfig);
-    // 不传第二个参数时，会自动用 firebaseConfig.storageBucket 指定的桶
-    const storage = getStorage(app);
+    // 显式指定 gs://…firebasestorage.app（关键！）
+    const storage = getStorage(app, "gs://chang-stem-class--materials.firebasestorage.app");
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
-    // 可添加多个管理员邮箱
     const ADMIN_EMAILS = ["vivien.chang10@gmail.com"];
 
-    // UI refs
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
     const who = document.getElementById("who");
@@ -136,7 +128,6 @@
         logoutBtn.style.display = "inline-block";
         who.textContent = `Signed in: ${user.email}`;
         adminBar.style.display = ADMIN_EMAILS.includes(user.email) ? "flex" : "none";
-        // 默认切到 5th
         selectGrade("5th");
       } else {
         loginBtn.style.display = "inline-block";
