@@ -4,6 +4,8 @@
   <meta charset="utf-8" />
   <title>STEM Ms. Chang — Learning Resources</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 避免 /favicon.ico 404 -->
+  <link rel="icon" href="data:,">
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin:0; }
     header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #eee; }
@@ -24,6 +26,8 @@
     input[type="file"] { display:none; }
     .link { color:#0b57d0; text-decoration:none; }
     .link:hover { text-decoration:underline; }
+    .debug { font-size:12px; color:#555; margin-top:8px;}
+    code { background:#f7f7f7; padding:2px 4px; border-radius:4px;}
   </style>
 </head>
 <body>
@@ -39,14 +43,18 @@
   <div class="container">
     <aside>
       <div class="row">
-        <div class="muted">Grades</div>
+        <div class="muted">Folders</div>
         <button id="addFolderBtn" class="hidden" title="Admin only">+ New Folder</button>
       </div>
       <div id="gradeList"></div>
+      <div class="debug">
+        <div>Bucket: <code id="debugBucket"></code></div>
+        <div>Domain: <code id="debugDomain"></code></div>
+      </div>
     </aside>
 
     <main>
-      <h2 id="currentGradeTitle">Please sign in</h2>
+      <h2 id="currentGradeTitle">Select a folder</h2>
       <div id="uploadBar" class="row hidden">
         <div class="pill">Admin upload</div>
         <label><button id="chooseFileBtn">Choose file</button><input id="fileInput" type="file" /></label>
@@ -54,7 +62,9 @@
         <span id="uploadStatus" class="muted"></span>
       </div>
 
-      <div id="needLogin" class="muted">Sign in to view and download materials.</div>
+      <div id="hint" class="muted">
+        You can browse and download without sign-in. Sign in only if you need to upload.
+      </div>
       <div id="loading" class="muted hidden">Loading...</div>
       <div id="error" class="error hidden"></div>
 
@@ -63,7 +73,7 @@
   </div>
 
   <script type="module">
-    /************ Firebase (v10) ************/
+    /************ Firebase SDK (v10) ************/
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
     import {
       getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
@@ -72,22 +82,19 @@
       getStorage, ref, listAll, getDownloadURL, uploadBytes
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
 
-    // ✅ 使用你项目的配置；注意 storageBucket 必须是 .appspot.com 结尾
+    // ✅ 一定用 appspot.com 这个结尾（这是正确的 bucket 名）
     const firebaseConfig = {
       apiKey: "AIzaSyDELcdhJKPrSVOGROj-yKl5rSGeNst6Z7k",
       authDomain: "chang-stem-class--materials.firebaseapp.com",
       projectId: "chang-stem-class--materials",
-      storageBucket: "chang-stem-class--materials.appspot.com",   // ← 已修正
+      storageBucket: "chang-stem-class--materials.appspot.com",
       messagingSenderId: "1066269130031",
       appId: "1:1066269130031:web:62b518c60d0c724571f5da"
-      // measurementId 可省略
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
-
-    // Storage
     const storage = getStorage(app);
 
     /************ UI elements ************/
@@ -97,7 +104,6 @@
     const currentGradeTitle = document.getElementById('currentGradeTitle');
     const gradeList = document.getElementById('gradeList');
     const fileList = document.getElementById('fileList');
-    const needLogin = document.getElementById('needLogin');
     const loading = document.getElementById('loading');
     const errorBox = document.getElementById('error');
 
@@ -108,13 +114,19 @@
     const uploadBtn = document.getElementById('uploadBtn');
     const uploadStatus = document.getElementById('uploadStatus');
 
-    // 你的管理员邮箱（只有它能上传/新建文件夹）
+    const debugBucket = document.getElementById('debugBucket');
+    const debugDomain = document.getElementById('debugDomain');
+
+    // 你的管理员邮箱（只有它能上传/新建）
     const ADMIN_EMAIL = "vivien.chang10@gmail.com";
 
-    // 默认年级列表（你也可以通过“+ New Folder”创建更多）
+    // 左侧文件夹（你也可以用“+ New Folder”创建更多）
     let gradeFolders = ["5th", "6th", "7th", "8th"];
     let currentGrade = null;
     let chosenFile = null;
+
+    debugBucket.textContent = firebaseConfig.storageBucket;
+    debugDomain.textContent = location.host;
 
     function setError(msg) {
       errorBox.textContent = msg;
@@ -133,7 +145,7 @@
         btn.textContent = g;
         btn.onclick = () => {
           currentGrade = g;
-          currentGradeTitle.textContent = g + " Grade";
+          currentGradeTitle.textContent = g + " Folder";
           loadFilesForGrade(g);
         };
         gradeList.appendChild(btn);
@@ -141,17 +153,12 @@
     }
 
     async function loadFilesForGrade(grade) {
-      if (!auth.currentUser) {
-        needLogin.classList.remove('hidden');
-        return;
-      }
       clearError();
-      needLogin.classList.add('hidden');
       loading.classList.remove('hidden');
       fileList.innerHTML = '';
 
       try {
-        // 列出该“目录”的所有对象
+        // 现在规则是公开可读，所以未登录也能列；等你要收紧时再改规则与逻辑
         const dirRef = ref(storage, `${grade}/`);
         const res = await listAll(dirRef);
 
@@ -187,12 +194,11 @@
           fileList.appendChild(li);
         }
       } catch (e) {
-        // 很多 403 会被浏览器当成 CORS 显示，这里把可读信息提示出来
         setError(
-          "Failed to load files. If you see a 'CORS' message in console, it's usually:\n" +
-          "• Not signed in (please sign in first), or\n" +
-          "• Storage rules rejecting (read requires login), or\n" +
-          "• App Check enforced for Storage (turn OFF enforcement until integrated).\n\n" +
+          "Load failed. 常见原因：\n" +
+          "• 规则未 Publish；\n" +
+          "• App Check 对 Storage 被 Enforce（未集成前不要 Enforce）；\n" +
+          "• storageBucket 写错，必须是 *.appspot.com。\n\n" +
           "Details: " + (e.message || e.toString())
         );
       } finally {
@@ -200,51 +206,26 @@
       }
     }
 
-    // 登录/登出
+    // 登录/登出（仅管理员需要，用来上传/建文件夹）
     loginBtn.onclick = async () => {
       clearError();
-      try {
-        await signInWithPopup(auth, provider);
-      } catch (e) {
-        setError("Sign-in failed: " + (e.message || e.toString()));
-      }
+      try { await signInWithPopup(auth, provider); }
+      catch (e) { setError("Sign-in failed: " + (e.message || e.toString())); }
     };
-    logoutBtn.onclick = async () => {
-      await signOut(auth);
-    };
+    logoutBtn.onclick = async () => { await signOut(auth); };
 
     onAuthStateChanged(auth, (user) => {
-      if (user) {
-        userEmailEl.textContent = user.email || "";
-        loginBtn.classList.add('hidden');
-        logoutBtn.classList.remove('hidden');
+      const email = (user && user.email) ? user.email : "";
+      userEmailEl.textContent = email;
+      loginBtn.classList.toggle('hidden', !!user);
+      logoutBtn.classList.toggle('hidden', !user);
 
-        // 管理员权限：显示上传、新建文件夹
-        const isAdmin = (user.email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase();
-        addFolderBtn.classList.toggle('hidden', !isAdmin);
-        uploadBar.classList.toggle('hidden', !isAdmin);
-
-        // 默认点开第一个年级
-        if (!currentGrade) {
-          currentGrade = gradeFolders[0];
-          currentGradeTitle.textContent = currentGrade + " Grade";
-          loadFilesForGrade(currentGrade);
-        } else {
-          loadFilesForGrade(currentGrade);
-        }
-      } else {
-        userEmailEl.textContent = "";
-        loginBtn.classList.remove('hidden');
-        logoutBtn.classList.add('hidden');
-        addFolderBtn.classList.add('hidden');
-        uploadBar.classList.add('hidden');
-        fileList.innerHTML = "";
-        currentGradeTitle.textContent = "Please sign in";
-        needLogin.classList.remove('hidden');
-      }
+      const isAdmin = email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+      addFolderBtn.classList.toggle('hidden', !isAdmin);
+      uploadBar.classList.toggle('hidden', !isAdmin);
     });
 
-    // Admin：新增“文件夹”（Storage 本质没有空文件夹概念，这里会创建一个占位文件）
+    // Admin：新增“文件夹”（通过占位文件实现）
     addFolderBtn.onclick = async () => {
       const name = prompt("New folder name (e.g., '5th-Unit1'):");
       if (!name) return;
@@ -277,7 +258,7 @@
       }
     };
 
-    // 初始化左侧年级
+    // 初始化左侧文件夹
     renderGrades();
   </script>
 </body>
