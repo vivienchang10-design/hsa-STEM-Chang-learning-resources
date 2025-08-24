@@ -7,25 +7,29 @@
   <title>STEM Ms. Chang – Learning Resources</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext y='24' font-size='24'%3E🔬%3C/text%3E%3C/svg%3E">
   <style>
-    body{font-family:system-ui,Arial,Helvetica,sans-serif;margin:0;background:#f7f7fb;color:#222}
+    :root{--bg:#f7f7fb;--fg:#222;--muted:#6b7280;--card:#fff;--border:#e5e7eb;--brand:#2563eb;--warn:#b91c1c;--note:#fff8e1;--note-b:#fde68a}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,Arial,Helvetica,sans-serif;margin:0;background:var(--bg);color:var(--fg)}
     header{background:#1f2937;color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
     .title{font-weight:700}
     .sub{opacity:.9;font-size:14px}
     .btn{padding:8px 12px;border:0;border-radius:10px;cursor:pointer}
-    .primary{background:#2563eb;color:#fff}
-    .ghost{background:#fff;color:#111;border:1px solid #e5e7eb}
+    .primary{background:var(--brand);color:#fff}
+    .ghost{background:#fff;color:#111;border:1px solid var(--border)}
     main{max-width:960px;margin:24px auto;padding:0 16px}
     .hidden{display:none}
     .grades{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}
-    .card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px;margin-bottom:12px}
-    .muted{color:#6b7280}
-    a{color:#2563eb;text-decoration:none}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
+    .muted{color:var(--muted)}
+    a{color:var(--brand);text-decoration:none}
     a:hover{text-decoration:underline}
     .folder{font-weight:600}
     .file{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px dashed #eee}
     .file:last-child{border-bottom:0}
-    .note{background:#fff8e1;border:1px solid #fde68a;border-radius:10px;padding:10px}
+    .note{background:var(--note);border:1px solid var(--note-b);border-radius:10px;padding:10px}
+    .warn{background:#fee2e2;border:1px solid #fecaca;color:var(--warn);border-radius:10px;padding:10px}
     code.badge{background:#eef2ff;padding:2px 6px;border-radius:6px;border:1px solid #c7d2fe}
+    .disabled{opacity:.6;pointer-events:none}
   </style>
 </head>
 <body>
@@ -44,8 +48,18 @@
     <div class="card">
       <div>Current site origin: <code class="badge" id="origin"></code></div>
       <div class="muted" style="margin-top:6px">
-        Make sure this exact domain is in
-        Firebase → Authentication → Settings → Authorized domains.
+        This exact domain must be in Firebase → Authentication → Settings → Authorized domains.
+      </div>
+    </div>
+
+    <div id="domainWarn" class="card hidden">
+      <div class="warn">
+        You are opening a Vercel preview domain which is usually NOT authorized yet.
+        Please open the production domain instead:
+        <a id="prodLink" href="#">go to production</a>.
+        <div class="muted" style="margin-top:6px">
+          Or add this preview domain to Authorized domains temporarily, then refresh.
+        </div>
       </div>
     </div>
 
@@ -56,7 +70,7 @@
     <div id="authedArea" class="hidden">
       <div class="card">
         <div id="userInfo" class="muted">Signed in</div>
-        <div class="grades">
+        <div class="grades" id="gradeBar">
           <button class="btn ghost" data-grade="5th">5th Grade</button>
           <button class="btn ghost" data-grade="6th">6th Grade</button>
           <button class="btn ghost" data-grade="7th">7th Grade</button>
@@ -81,7 +95,7 @@
       getStorage, ref, listAll, getDownloadURL
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
-    // === 你的 Firebase 配置：storageBucket 必须是 appspot.com ===
+    // ======= 配置（storageBucket 必须是 appspot.com 结尾）=======
     const firebaseConfig = {
       apiKey: "AIzaSyDELcdhJKPrSVOGROj-yKl5rSGeNst6Z7k",
       authDomain: "chang-stem-class--materials.firebaseapp.com",
@@ -92,18 +106,20 @@
       measurementId: "G-D4N8JERGV8"
     };
 
-    // === 初始化 ===
+    // ======= 初始化 =======
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    auth.useDeviceLanguage();
     const provider = new GoogleAuthProvider();
     const storage = getStorage(app);
 
-    // 持久化登录
-    setPersistence(auth, browserLocalPersistence).catch(()=>{});
+    // 登录持久化
+    setPersistence(auth, browserLocalPersistence).catch(() => {});
 
-    // 元素
+    // ======= DOM =======
     const originEl = document.getElementById("origin");
-    originEl.textContent = location.host;
+    const domainWarn = document.getElementById("domainWarn");
+    const prodLink = document.getElementById("prodLink");
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
     const needAuth = document.getElementById("needAuth");
@@ -111,26 +127,57 @@
     const userInfo = document.getElementById("userInfo");
     const listEl = document.getElementById("list");
     const statusEl = document.getElementById("status");
+    const gradeBar = document.getElementById("gradeBar");
 
-    // 登录 / 登出
+    // ======= 域名检查：预览域名会拦截，避免发起 Storage 请求导致 CORS 假象 =======
+    const PROD_HOST = "hsa-stem-chang-learning-resources.vercel.app";
+    const ON_PROD = location.host === PROD_HOST;
+
+    originEl.textContent = location.host;
+    prodLink.href = `https://${PROD_HOST}`;
+
+    function setGradesEnabled(enabled) {
+      gradeBar.querySelectorAll("button").forEach(btn => {
+        if (enabled) btn.classList.remove("disabled");
+        else btn.classList.add("disabled");
+      });
+    }
+
+    if (!ON_PROD) {
+      // 非正式域名：给出提示并禁用年级按钮，直到你把该域名加入 Authorized domains
+      domainWarn.classList.remove("hidden");
+      setGradesEnabled(false);
+    } else {
+      domainWarn.classList.add("hidden");
+      setGradesEnabled(true);
+    }
+
+    // ======= 登录 / 登出 =======
     loginBtn.onclick = async () => {
       try {
         await signInWithPopup(auth, provider);
       } catch (err) {
         console.error(err);
-        alert("Sign-in failed: " + (err?.message || err));
+        alert("Sign-in failed: " + (err && err.message ? err.message : err));
       }
     };
-    logoutBtn.onclick = async () => { await signOut(auth); };
 
-    // 监听登录状态：只有登录后才显示按钮 & 允许访问
+    logoutBtn.onclick = async () => {
+      try {
+        await signOut(auth);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    // ======= 登录状态切换 =======
     onAuthStateChanged(auth, (user) => {
       if (user) {
         loginBtn.classList.add("hidden");
         logoutBtn.classList.remove("hidden");
         needAuth.classList.add("hidden");
         authedArea.classList.remove("hidden");
-        userInfo.textContent = `Signed in as ${user.email}`;
+        userInfo.textContent = "Signed in as " + user.email;
       } else {
         loginBtn.classList.remove("hidden");
         logoutBtn.classList.add("hidden");
@@ -140,11 +187,15 @@
       }
     });
 
-    // 绑定年级按钮（再次保护：未登录就不请求）
-    document.querySelectorAll("[data-grade]").forEach(btn => {
+    // ======= 绑定年级点击（双重保护：未登录或非正式域名都不请求）=======
+    gradeBar.querySelectorAll("button").forEach(btn => {
       btn.addEventListener("click", async () => {
         if (!auth.currentUser) {
           alert("Please sign in first.");
+          return;
+        }
+        if (!ON_PROD) {
+          alert("This is a Vercel preview domain. Add this domain to Firebase Authorized domains, or open the production link shown above.");
           return;
         }
         const grade = btn.getAttribute("data-grade");
@@ -152,13 +203,18 @@
       });
     });
 
+    // ======= 列表渲染 =======
     async function renderGrade(grade) {
       statusEl.textContent = "Loading…";
       listEl.innerHTML = "";
       try {
-        const rootRef = ref(storage, `${grade}/`);
-        const res = await listAll(rootRef);
+        // 强制刷新 ID Token，确保 Storage 看到的是已登录状态
+        if (auth.currentUser && auth.currentUser.getIdToken) {
+          await auth.currentUser.getIdToken(true);
+        }
 
+        const rootRef = ref(storage, grade + "/");
+        const res = await listAll(rootRef);
         const container = document.createElement("div");
 
         if (res.prefixes.length) {
@@ -169,8 +225,8 @@
           res.prefixes.forEach(p => {
             const row = document.createElement("div");
             row.className = "file";
-            row.innerHTML = `<span>📁 ${p.name}/</span>
-              <a href="#" data-sub="${p.fullPath}">Open</a>`;
+            row.innerHTML = "<span>📁 " + p.name + "/</span>" +
+              "<a href='#' data-sub='" + p.fullPath + "'>Open</a>";
             container.appendChild(row);
           });
         }
@@ -186,14 +242,14 @@
             const url = await getDownloadURL(itemRef);
             const row = document.createElement("div");
             row.className = "file";
-            row.innerHTML = `<span>📄 ${itemRef.name}</span>
-              <a href="${url}" download>Download</a>`;
+            row.innerHTML = "<span>📄 " + itemRef.name + "</span>" +
+              "<a href='" + url + "' download>Download</a>";
             container.appendChild(row);
           }
         }
 
         if (!res.prefixes.length && !res.items.length) {
-          container.innerHTML = `<div class="muted">No files yet in <strong>${grade}</strong>.</div>`;
+          container.innerHTML = "<div class='muted'>No files yet in <strong>" + grade + "</strong>.</div>";
         }
 
         listEl.appendChild(container);
@@ -210,14 +266,18 @@
       } catch (e) {
         console.error(e);
         statusEl.textContent =
-          "Failed to load. Check: Authorized domains, App Check (Unenforced), Storage rules, and make sure you are signed in.";
+          "Failed to load. Check Authorized domains (use production domain), App Check must be Unenforced for Storage, and Storage rules require login.";
       }
     }
 
     async function renderFolder(path) {
-      statusEl.textContent = `Loading ${path}…`;
+      statusEl.textContent = "Loading " + path + "…";
       listEl.innerHTML = "";
       try {
+        if (auth.currentUser && auth.currentUser.getIdToken) {
+          await auth.currentUser.getIdToken(true);
+        }
+
         const res = await listAll(ref(storage, path + "/"));
         const container = document.createElement("div");
         const h = document.createElement("div");
@@ -229,8 +289,8 @@
           const url = await getDownloadURL(itemRef);
           const row = document.createElement("div");
           row.className = "file";
-          row.innerHTML = `<span>📄 ${itemRef.name}</span>
-            <a href="${url}" download>Download</a>`;
+          row.innerHTML = "<span>📄 " + itemRef.name + "</span>" +
+            "<a href='" + url + "' download>Download</a>";
           container.appendChild(row);
         }
 
