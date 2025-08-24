@@ -92,6 +92,14 @@
 
     // 这里控制“前端管理员按钮”，真正写权限在 Storage 规则里是“已登录可写”
     const ADMIN_EMAILS = ["vivien.chang10@gmail.com"];
+    // 只允许这些域名登录：正式域名 + 本地
+const ALLOWED_HOSTS = [
+  "hsa-stem-chang-learning-resources.vercel.app",
+  "localhost",
+  "127.0.0.1"
+];
+const onPreview = !ALLOWED_HOSTS.includes(location.hostname);
+
 
     // UI refs
     const loginBtn = document.getElementById("loginBtn");
