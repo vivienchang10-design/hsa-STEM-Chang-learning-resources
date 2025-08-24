@@ -42,6 +42,23 @@
         <button id="logoutBtn" class="btn secondary" style="display:none">Sign out</button>
       </div>
     </div>
+    <!-- 防止在预览域名上点登录报错的小脚本 -->
+<script>
+  const ALLOWED_HOSTS = new Set([
+    "hsa-stem-chang-learning-resources.vercel.app",
+    "localhost",
+    "127.0.0.1"
+  ]);
+
+  const loginBtn = document.getElementById("loginBtn");
+  if (loginBtn && !ALLOWED_HOSTS.has(location.hostname)) {
+    loginBtn.disabled = true;
+    loginBtn.title = "Sign-in only works on the production site.";
+    loginBtn.style.opacity = "0.6";
+    loginBtn.style.cursor = "not-allowed";
+  }
+</script>
+
     <div id="who" class="hint"></div>
   </header>
 
