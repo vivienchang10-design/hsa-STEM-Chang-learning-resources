@@ -1,103 +1,28 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>STEM Ms. Chang — Learning Resources</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- 解决 favicon 404（内联一个简易图标） -->
-  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔬</text></svg>'>
-  <style>
-    :root { --bg:#0b1220; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb; --brand:#22c55e; --border:#233044; }
-    html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:16px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;}
-    .wrap{max-width:1000px;margin:32px auto;padding:0 16px;}
-    header{display:flex;gap:16px;align-items:center;margin-bottom:16px;}
-    .logo{width:48px;height:48px;border-radius:12px;background:#1f2937;display:grid;place-items:center;font-size:28px}
-    h1{font-size:22px;margin:0}
-    .muted{color:var(--muted)}
-    .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px}
-    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-    button,.btn{background:#1f2937;border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer}
-    button.primary{background:var(--brand);border-color:#16a34a;color:#0b1220;font-weight:600}
-    button:disabled{opacity:.6;cursor:not-allowed}
-    .tabs{display:flex;gap:8px;flex-wrap:wrap}
-    .tab{padding:8px 12px;border-radius:999px;border:1px solid var(--border);cursor:pointer;background:#0f172a}
-    .tab.active{background:#0ea5e9;border-color:#0284c7}
-    .grade-bar{display:flex;justify-content:space-between;align-items:center;margin:8px 0 16px}
-    .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
-    .item{border:1px dashed var(--border);border-radius:12px;padding:12px;background:#0f172a}
-    .item b{display:block;margin-bottom:6px}
-    .hint{font-size:14px;color:var(--muted)}
-    .sep{height:1px;background:var(--border);margin:12px 0}
-  </style>
-</head>
-<body>
-<div class="wrap">
-  <header>
-    <div class="logo">🔬</div>
-    <div>
-      <h1>STEM Ms. Chang — Learning Resources</h1>
-      <div class="muted">STEM Teacher K–8 · Harmony Science Academy · Lubbock, TX</div>
-    </div>
-  </header>
-
-  <div class="card">
-    <div class="row">
-      <button id="loginBtn" class="primary">Sign in with Google</button>
-      <button id="logoutBtn" style="display:none;">Sign out</button>
-      <span id="who" class="muted"></span>
-    </div>
-    <div class="sep"></div>
-    <div class="tabs" id="gradeTabs">
-      <div class="tab" data-grade="5th">5th Grade</div>
-      <div class="tab" data-grade="6th">6th Grade</div>
-      <div class="tab" data-grade="7th">7th Grade</div>
-      <div class="tab" data-grade="8th">8th Grade</div>
-    </div>
-
-    <div class="grade-bar">
-      <div class="hint" id="gradeTitle">Select a grade.</div>
-      <div class="row" id="adminBar" style="display:none;">
-        <input type="file" id="fileInput" />
-        <button id="uploadBtn">Upload to this grade</button>
-        <button id="mkFolderBtn">＋ New folder</button>
-      </div>
-    </div>
-
-    <div id="list" class="list"></div>
-    <div id="msg" class="hint"></div>
-  </div>
-
-  <p class="hint" style="margin-top:12px">
-    Tip: Files are in Firebase Storage under folders <code>5th/</code>, <code>6th/</code>, <code>7th/</code>, <code>8th/</code>.  
-    Students must sign in to view & download. Only the admin email can upload/create folders.
-  </p>
-</div>
-
-<!-- Firebase v10 CDN (模块化) -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getStorage, ref, listAll, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+  import {
+    getStorage, ref, listAll, uploadBytes, getDownloadURL,
+    getMetadata, deleteObject
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-  // === 🔧 只需把下面这一段改成你的项目配置（已为你填好） ===
+  // === 你的项目配置（保持你现在的，桶是 firebasestorage.app） ===
   const firebaseConfig = {
     apiKey: "AIzaSyDELcdhJKPrSVOGROj-yKl5rSGeNst6Z7k",
     authDomain: "chang-stem-class--materials.firebaseapp.com",
     projectId: "chang-stem-class--materials",
-    storageBucket: "chang-stem-class--materials.firebasestorage.app", // ← 跟你 Console 里 gs:// 后面一致
+    storageBucket: "chang-stem-class--materials.firebasestorage.app",
     messagingSenderId: "1066269130031",
     appId: "1:1066269130031:web:62b518c60d0c724571f5da",
     measurementId: "G-D4N8JERGV8"
   };
-  // ===========================================================
 
   const app = initializeApp(firebaseConfig);
-
-  // 明确指定同一个桶（可选，但更稳）
   const storage = getStorage(app, "gs://chang-stem-class--materials.firebasestorage.app");
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
 
+  // 可添加多个管理员邮箱
   const ADMIN_EMAILS = ["vivien.chang10@gmail.com"];
 
   // UI refs
@@ -116,16 +41,21 @@
   let currentUser = null;
   let currentGrade = null;
 
-  // 只在登录后加载内容
+  function setMessage(text) { msgEl.textContent = text || ""; }
+  function formatBytes(n){
+    if (!Number.isFinite(n)) return "";
+    const u = ['B','KB','MB','GB','TB']; let i = 0;
+    while (n >= 1024 && i < u.length-1) { n /= 1024; i++; }
+    return `${n.toFixed(n >= 100 ? 0 : n >= 10 ? 1 : 2)} ${u[i]}`;
+  }
+
   onAuthStateChanged(auth, (user) => {
     currentUser = user || null;
     if (user) {
       loginBtn.style.display = "none";
       logoutBtn.style.display = "inline-block";
       who.textContent = `Signed in: ${user.email}`;
-      // 管理员可见上传/新建按钮
       adminBar.style.display = ADMIN_EMAILS.includes(user.email) ? "flex" : "none";
-      // 默认加载 5th
       selectGrade("5th");
     } else {
       loginBtn.style.display = "inline-block";
@@ -138,30 +68,16 @@
   });
 
   loginBtn.onclick = async () => {
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (e) {
-      console.error(e);
-      alert("Sign-in failed: " + (e?.message || e));
-    }
+    try { await signInWithPopup(auth, provider); }
+    catch (e) { console.error(e); alert("Sign-in failed: " + (e?.message || e)); }
   };
+  logoutBtn.onclick = async () => { await signOut(auth); };
 
-  logoutBtn.onclick = async () => {
-    await signOut(auth);
-  };
-
-  // 切换年级标签
   gradeTabs.addEventListener("click", (e) => {
-    const t = e.target.closest(".tab");
-    if (!t) return;
-    const g = t.dataset.grade;
-    selectGrade(g);
+    const t = e.target.closest(".tab"); if (!t) return;
+    const g = t.dataset.grade; selectGrade(g);
     for (const el of gradeTabs.querySelectorAll(".tab")) el.classList.toggle("active", el === t);
   });
-
-  function setMessage(text) {
-    msgEl.textContent = text || "";
-  }
 
   async function selectGrade(grade) {
     if (!currentUser) { setMessage("Please sign in first."); return; }
@@ -169,8 +85,8 @@
     gradeTitle.textContent = `${grade} — files & folders`;
     setMessage("Loading...");
     listEl.innerHTML = "";
+
     try {
-      // 列出该年级根目录的文件 / 子目录
       const baseRef = ref(storage, `${grade}/`);
       const result = await listAll(baseRef);
 
@@ -181,46 +97,69 @@
         div.innerHTML = `<b>📁 ${p.name}/</b><span class="hint">Folder under ${grade}/</span>`;
         listEl.appendChild(div);
 
-        // （可选）也把每个子目录下的文件列出来
         const sub = await listAll(p);
         for (const f of sub.items) {
-          const url = await getDownloadURL(f);
-          const item = document.createElement("div");
-          item.className = "item";
-          item.innerHTML = `<b>📄 ${p.name}/${f.name}</b><a class="btn" href="${url}" target="_blank" rel="noopener">Download</a>`;
-          listEl.appendChild(item);
+          await renderFileItem(`${grade}/${p.name}/${f.name}`, f);
         }
       }
 
-      // 该年级根目录下的文件
+      // 根目录文件
       for (const f of result.items) {
-        const url = await getDownloadURL(f);
-        const item = document.createElement("div");
-        item.className = "item";
-        item.innerHTML = `<b>📄 ${f.name}</b><a class="btn" href="${url}" target="_blank" rel="noopener">Download</a>`;
-        listEl.appendChild(item);
+        await renderFileItem(`${grade}/${f.name}`, f);
       }
 
-      if (!result.items.length && !result.prefixes.length) {
-        setMessage("No files yet. (Admins can upload.)");
-      } else {
-        setMessage("");
-      }
+      if (!result.items.length && !result.prefixes.length) setMessage("No files yet. (Admins can upload.)");
+      else setMessage("");
     } catch (err) {
       console.error(err);
-      // 未登录或规则拒绝，SDK 常表现得像 CORS，这里给出直观提示
       setMessage("Cannot list files. Make sure you are signed in and Storage rules allow authenticated read.");
     }
   }
 
-  // 管理员：上传到当前年级根目录
+  async function renderFileItem(path, fileRefObj) {
+    try {
+      const url = await getDownloadURL(fileRefObj);
+      const meta = await getMetadata(fileRefObj);
+      const item = document.createElement("div");
+      item.className = "item";
+      const size = formatBytes(meta.size);
+      const adminBtns = (currentUser && ADMIN_EMAILS.includes(currentUser.email))
+        ? `<button class="btn" data-del="${path}">Delete</button>`
+        : "";
+      item.innerHTML = `
+        <b>📄 ${path.split('/').slice(-1)[0]}</b>
+        <div class="hint">Size: ${size || "—"}</div>
+        <div class="row" style="margin-top:6px">
+          <a class="btn" href="${url}" target="_blank" rel="noopener">Download</a>
+          ${adminBtns}
+        </div>
+      `;
+      listEl.appendChild(item);
+
+      if (adminBtns) {
+        item.querySelector('[data-del]').onclick = async () => {
+          if (!confirm(`Delete "${path}" ?`)) return;
+          try {
+            await deleteObject(ref(storage, path));
+            item.remove();
+          } catch (e) {
+            console.error(e);
+            alert("Delete failed: " + (e?.message || e));
+          }
+        };
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // 管理员上传
   uploadBtn.onclick = async () => {
     try {
       if (!currentUser) return alert("Please sign in first.");
       if (!ADMIN_EMAILS.includes(currentUser.email)) return alert("Only admin can upload.");
       if (!currentGrade) return alert("Select a grade first.");
-      const file = fileInput.files?.[0];
-      if (!file) return alert("Choose a file first.");
+      const file = fileInput.files?.[0]; if (!file) return alert("Choose a file first.");
 
       const fileRef = ref(storage, `${currentGrade}/${file.name}`);
       await uploadBytes(fileRef, file);
@@ -232,7 +171,7 @@
     }
   };
 
-  // 管理员：新建“文件夹”（用 .keep 占位）
+  // 管理员新建“文件夹”
   mkFolderBtn.onclick = async () => {
     try {
       if (!currentUser) return alert("Please sign in first.");
@@ -252,8 +191,5 @@
     }
   };
 
-  // 控制台里打个标记，方便你确认桶名
   console.log("Using bucket:", firebaseConfig.storageBucket);
 </script>
-</body>
-</html>
