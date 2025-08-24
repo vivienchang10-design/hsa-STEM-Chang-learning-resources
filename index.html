@@ -1,317 +1,379 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>STEM Ms Chang — Learning Resources</title>
-  <!-- 内联一个小图标，避免 /favicon.ico 404 -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23007bff'/%3E%3Ctext x='50' y='58' font-size='52' text-anchor='middle' fill='white' font-family='Arial,Helvetica,sans-serif'%3ES%3C/text%3E%3C/svg%3E">
+  <meta charset="utf-8">
+  <title>STEM Ms Chang - Learning Resources</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- 避免 favicon 404 -->
+  <link rel="icon" href="data:,">
+
   <style>
-    :root{
-      --bg:#0b1020;--card:#121931;--card2:#10172a;--text:#e7eaf6;--muted:#9fb0d2;
-      --accent:#3b82f6;--ok:#10b981;--warn:#f59e0b;--bad:#ef4444
+    :root {
+      --bg: #0b132b;
+      --card: #1c2541;
+      --muted: #3a506b;
+      --accent: #5bc0be;
+      --text: #e6f1ff;
+      --warn: #ffce73;
     }
-    *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(180deg,#0b1020,#0a0f1e);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;min-height:100vh}
-    header{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid #1e2746;background:rgba(18,25,49,.8);backdrop-filter:blur(6px);position:sticky;top:0;z-index:10}
-    .brand{display:flex;gap:12px;align-items:center}
-    .badge{background:#1a2240;border:1px solid #2a3764;padding:6px 10px;border-radius:12px;color:var(--muted);font-size:12px}
-    .main{display:grid;grid-template-columns:260px 1fr;gap:18px;padding:18px;max-width:1200px;margin:0 auto}
-    .side{background:var(--card);border:1px solid #1e2746;border-radius:14px;padding:14px}
-    .content{background:var(--card);border:1px solid #1e2746;border-radius:14px;padding:16px;min-height:60vh}
-    h1{font-size:18px;margin:0}
-    .muted{color:var(--muted);font-size:13px}
-    .btn{cursor:pointer;background:var(--accent);color:white;border:none;border-radius:10px;padding:10px 14px;font-weight:600}
-    .btn.secondary{background:#24314f}
-    .btn.ghost{background:transparent;border:1px solid #2a3764}
-    .grades{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
-    .grade{padding:8px 12px;border-radius:10px;border:1px solid #2a3764;background:#0f1935;cursor:pointer}
-    .grade.active{background:#1d2a52;border-color:#3b82f6}
-    .items{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:10px}
-    .card{background:var(--card2);border:1px solid #1e2746;border-radius:12px;padding:12px}
-    .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .tag{font-size:12px;color:var(--muted);background:#0d142b;border:1px solid #1d2850;padding:4px 8px;border-radius:999px}
-    .link{color:#cfe2ff;text-decoration:none}
-    .link:hover{text-decoration:underline}
-    .hidden{display:none !important}
-    .admin{margin-top:14px;border-top:1px dashed #2a3764;padding-top:12px}
-    input[type=\"text\"]{background:#0d142b;color:var(--text);border:1px solid #2a3764;border-radius:10px;padding:8px 10px;width:100%}
-    input[type=\"file\"]{color:var(--muted)}
-    .crumb{color:var(--muted);font-size:13px}
-    .crumb b{color:#cbd9ff}
-    .notice{margin:14px 0;padding:10px;border-radius:10px;background:#0f1b33;border:1px solid #25345e;color:#cfe2ff}
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; background: rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.07);
+      position: sticky; top: 0; backdrop-filter: blur(8px); z-index: 5;
+    }
+    .title { font-weight: 700; letter-spacing: .3px; }
+    .sub { font-size: 12px; opacity: .9; line-height: 1.2; margin-top: 2px; }
+    .actions { display: flex; align-items: center; gap: 8px; }
+    button, .btn {
+      background: var(--accent); color: #062c30; border: 0; padding: 8px 12px; border-radius: 10px; font-weight: 700;
+      cursor: pointer;
+    }
+    button.secondary { background: var(--muted); color: #eaf6ff; }
+    main { max-width: 980px; margin: 24px auto; padding: 0 16px; }
+    .notice {
+      background: #12223f; border: 1px solid rgba(91,192,190,.35);
+      color: #c7f5f4; padding: 12px 14px; border-radius: 12px; margin-bottom: 12px;
+    }
+    .tabs { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin: 16px 0 12px; }
+    .tab {
+      background: var(--card); padding: 10px 12px; border-radius: 12px; text-align: center; cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .tab.active { outline: 2px solid var(--accent); }
+    .card {
+      background: var(--card); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 14px;
+    }
+    .list { display: grid; gap: 8px; }
+    .file {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      background: #131b33; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);
+    }
+    .file a { color: #b5e5e4; text-decoration: none; font-weight: 600; }
+    .muted { color: #9fb2c8; font-size: 13px; }
+    .row { display: flex; align-items: center; gap: 10px; }
+    .right { display: flex; gap: 8px; }
+    .hidden { display: none !important; }
+    .uploader { margin-top: 14px; border-top: 1px dashed rgba(255,255,255,0.12); padding-top: 14px; }
+    .small { font-size: 12px; color: #c9d7ff; }
+    .error {
+      background: #3b1a1a; color: #ffdada; border: 1px solid rgba(255, 128, 128, .35);
+      padding: 10px 12px; border-radius: 12px; margin-bottom: 12px;
+    }
   </style>
 </head>
 <body>
   <header>
-    <div class="brand">
-      <div>
-        <h1>STEM Ms Chang — Learning Resources</h1>
-        <div class="muted">Harmony Science Academy, Lubbock — STEM Teacher K–8</div>
+    <div>
+      <div class="title">STEM Ms Chang</div>
+      <div class="sub">
+        Xiaqing Chang — STEM Teacher K-8 · Harmony Science Academy, 3701 W Loop 289, Lubbock, TX 79407 · 806-747-1000
       </div>
     </div>
-    <div>
-      <span id="who" class="badge">Signed out</span>
-      <button id="loginBtn" class="btn">Sign in with Google</button>
-      <button id="logoutBtn" class="btn ghost hidden">Sign out</button>
+    <div class="actions">
+      <span id="userEmail" class="muted"></span>
+      <button id="loginBtn">Sign in</button>
+      <button id="logoutBtn" class="secondary hidden">Sign out</button>
     </div>
   </header>
 
-  <div class="main">
-    <aside class="side">
-      <div class="muted">Grades</div>
-      <div id="grades" class="grades"></div>
+  <main>
+    <div id="errorBox" class="error hidden"></div>
+    <div id="infoBox" class="notice hidden"></div>
 
-      <div class="admin hidden" id="adminPanel">
-        <div class="muted" style="margin-bottom:6px;">Admin tools</div>
-        <div class="notice">You are signed in as <b id="adminEmail"></b>. You can upload and create folders.</div>
+    <div class="tabs" id="tabs"></div>
 
-        <label class="muted">Create folder inside current path</label>
-        <div style="display:flex; gap:8px; margin:6px 0 12px;">
-          <input id="newFolderName" type="text" placeholder="e.g. Unit 1" />
-          <button class="btn secondary" id="createFolderBtn">+ Folder</button>
+    <div class="card">
+      <div class="row">
+        <div class="muted">Folder:</div>
+        <div id="folderName" class="muted">—</div>
+      </div>
+
+      <div id="list" class="list" style="margin-top: 10px;"></div>
+
+      <div id="uploader" class="uploader hidden">
+        <div class="row" style="justify-content: space-between;">
+          <div>
+            <div style="font-weight:700;margin-bottom:6px;">Upload (admins only)</div>
+            <div class="small">File will be saved to the current folder.</div>
+          </div>
+          <div class="right">
+            <input type="file" id="fileInput" />
+            <button id="uploadBtn" class="secondary">Upload</button>
+          </div>
         </div>
-
-        <label class="muted">Upload file to current path</label>
-        <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
-          <input type="file" id="fileInput" />
-          <button class="btn secondary" id="uploadBtn">Upload</button>
-        </div>
+        <div id="progress" class="small muted"></div>
       </div>
-    </aside>
+    </div>
+  </main>
 
-    <section class="content">
-      <div id="needLogin" class="notice">
-        Please <b>sign in with Google</b> to view and download class materials.
-      </div>
-
-      <div id="app" class="hidden">
-        <div class="crumb">Path: <b id="pathLabel">5th/</b></div>
-        <div id="folders" class="items"></div>
-        <div id="files" class="items"></div>
-      </div>
-    </section>
-  </div>
-
+  <!-- Firebase v10 ESM -->
   <script type="module">
-    // ==== Firebase SDK (v10) ====
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-    import {
-      getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged,
-      signOut, setPersistence, browserLocalPersistence
-    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-    import {
-      getStorage, ref, listAll, getDownloadURL, uploadBytes, deleteObject
-    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
-
-    // ==== Your Firebase config (修正了 storageBucket 为 appspot.com) ====
+    // ====== 0) Config ======
     const firebaseConfig = {
       apiKey: "AIzaSyDELcdhJKPrSVOGROj-yKl5rSGeNst6Z7k",
       authDomain: "chang-stem-class--materials.firebaseapp.com",
       projectId: "chang-stem-class--materials",
       storageBucket: "chang-stem-class--materials.appspot.com",
-      messagingSenderId: "1066269130031",
-      appId: "1:1066269130031:web:62b518c60d0c724571f5da",
-      measurementId: "G-D4N8JERGV8"
+      appId: "1:1066269130031:web:62b518c60d0c724571f5da"
     };
 
-    // ==== App init ====
+    const GRADES = ["5th", "6th", "7th", "8th"];
+    const ADMIN_EMAILS = ["vivien.chang10@gmail.com"]; // 可加: "xchang@harmonytx.org"
+
+    // ====== 1) Imports ======
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import {
+      getAuth, GoogleAuthProvider, signInWithPopup,
+      onAuthStateChanged, signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+    import {
+      getStorage, ref, listAll, getDownloadURL, uploadBytesResumable
+    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
+
+    // ====== 2) Init ======
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
     const storage = getStorage(app);
 
-    // 持久化登录
-    await setPersistence(auth, browserLocalPersistence);
-
-    // ==== Simple state ====
-    const ADMIN_EMAILS = new Set(["vivien.chang10@gmail.com"]);
-    const GRADES = ["5th","6th","7th","8th"];
-    let currentPath = "5th/"; // 默认路径
-    let isAdmin = false;
-
-    // ==== UI refs ====
-    const whoEl = document.getElementById("who");
+    // ====== 3) UI refs ======
+    const tabs = document.getElementById("tabs");
+    const listEl = document.getElementById("list");
+    const folderNameEl = document.getElementById("folderName");
+    const userEmailEl = document.getElementById("userEmail");
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
-    const gradesEl = document.getElementById("grades");
-    const needLoginEl = document.getElementById("needLogin");
-    const appEl = document.getElementById("app");
-    const pathLabel = document.getElementById("pathLabel");
-    const foldersEl = document.getElementById("folders");
-    const filesEl = document.getElementById("files");
-    const adminPanel = document.getElementById("adminPanel");
-    const adminEmail = document.getElementById("adminEmail");
-    const newFolderName = document.getElementById("newFolderName");
-    const createFolderBtn = document.getElementById("createFolderBtn");
+    const uploader = document.getElementById("uploader");
     const fileInput = document.getElementById("fileInput");
     const uploadBtn = document.getElementById("uploadBtn");
+    const progressEl = document.getElementById("progress");
+    const infoBox = document.getElementById("infoBox");
+    const errorBox = document.getElementById("errorBox");
 
-    // ==== Helpers ====
-    function el(tag, attrs={}, children=[]) {
-      const e = document.createElement(tag);
-      Object.entries(attrs).forEach(([k,v]) => {
-        if (k === "class") e.className = v;
-        else if (k === "onclick") e.addEventListener("click", v);
-        else e.setAttribute(k, v);
-      });
-      children.forEach(c => e.append(c));
-      return e;
+    let currentGrade = GRADES[0];
+    let currentUser = null;
+
+    // ====== 4) Helpers ======
+    function setError(msg) {
+      if (!msg) {
+        errorBox.classList.add("hidden");
+        errorBox.textContent = "";
+        return;
+      }
+      errorBox.textContent = msg;
+      errorBox.classList.remove("hidden");
     }
-    function setActiveGrade(grade) {
-      currentPath = grade.endsWith("/") ? grade : grade + "/";
-      pathLabel.textContent = currentPath;
-      [...gradesEl.children].forEach(ch => ch.classList.toggle("active", ch.dataset.g === grade));
-      loadPath(currentPath);
+
+    function setInfo(msg) {
+      if (!msg) {
+        infoBox.classList.add("hidden");
+        infoBox.textContent = "";
+        return;
+      }
+      infoBox.textContent = msg;
+      infoBox.classList.remove("hidden");
     }
-    function renderGrades() {
-      gradesEl.innerHTML = "";
+
+    function bytesToSize(bytes) {
+      if (!bytes && bytes !== 0) return "";
+      const sizes = ["B","KB","MB","GB","TB"];
+      const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), sizes.length - 1);
+      return (bytes / Math.pow(1024, i)).toFixed(2) + " " + sizes[i];
+    }
+
+    function isAdmin(email) {
+      return ADMIN_EMAILS.indexOf(String(email || "").toLowerCase()) !== -1;
+    }
+
+    function requireSignedIn() {
+      if (!currentUser) {
+        setInfo("Please sign in to view and download class materials.");
+        listEl.innerHTML = "";
+        uploader.classList.add("hidden");
+        return false;
+      }
+      setInfo("");
+      return true;
+    }
+
+    // ====== 5) Build tabs ======
+    function buildTabs() {
+      tabs.innerHTML = "";
       GRADES.forEach(g => {
-        const btn = el("button", { class: "grade" + (g==="5th"?" active":""), "data-g": g, onclick: () => setActiveGrade(g) }, [g]);
-        gradesEl.append(btn);
+        const b = document.createElement("div");
+        b.className = "tab" + (g === currentGrade ? " active" : "");
+        b.textContent = g;
+        b.dataset.grade = g;
+        b.onclick = function () {
+          if (g === currentGrade) return;
+          currentGrade = g;
+          document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+          b.classList.add("active");
+          loadFolder();
+        };
+        tabs.appendChild(b);
       });
     }
-    function renderFolderCard(name, click) {
-      return el("div",{class:"card"},[
-        el("div",{class:"row"},[
-          el("div",{},[ "📁 ", el("b",{},[name]) ]),
-          el("button",{class:"btn ghost",onclick:click},["Open"])
-        ])
-      ]);
-    }
-    function renderFileCard(name, open) {
-      const ext = name.split(".").pop()?.toUpperCase() || "";
-      return el("div",{class:"card"},[
-        el("div",{class:"row"},[
-          el("div",{},[ "📄 ", el("b",{},[name]) ]),
-          el("span",{class:"tag"},[ext])
-        ]),
-        el("div",{style:"margin-top:8px"},[
-          el("a",{href:"#",class:"link",onclick:(e)=>{e.preventDefault();open();}},["Open / Download"])
-        ])
-      ]);
-    }
 
-    async function loadPath(path) {
-      foldersEl.innerHTML = "";
-      filesEl.innerHTML = "";
-      const dirRef = ref(storage, path);
+    // ====== 6) List folder ======
+    async function loadFolder() {
+      folderNameEl.textContent = currentGrade + "/";
+
+      if (!requireSignedIn()) {
+        listEl.innerHTML = "";
+        return;
+      }
+
+      setError("");
+      listEl.innerHTML = "<div class='muted'>Loading...</div>";
+
       try {
-        const { prefixes, items } = await listAll(dirRef);
+        const folderRef = ref(storage, currentGrade + "/");
+        const res = await listAll(folderRef);
 
-        // 子文件夹
-        if (prefixes.length) {
-          prefixes.forEach(p => {
-            const folderName = p.name; // child name
-            const card = renderFolderCard(folderName, () => {
-              // 进入子目录
-              currentPath = path + folderName + "/";
-              pathLabel.textContent = currentPath;
-              loadPath(currentPath);
-            });
-            foldersEl.append(card);
-          });
-        }
+        if (res.items.length === 0) {
+          listEl.innerHTML = "<div class='muted'>This folder is empty.</div>";
+        } else {
+          listEl.innerHTML = "";
+          // 逐个生成下载链接
+          for (const itemRef of res.items) {
+            const url = await getDownloadURL(itemRef);
+            const fileName = itemRef.name;
 
-        // 文件
-        if (items.length) {
-          for (const it of items) {
-            const name = it.name;
-            // 跳过我们用于创建空目录的占位文件
-            if (name === ".keep") continue;
-            const card = renderFileCard(name, async () => {
-              const url = await getDownloadURL(it);
-              // 新窗口打开
-              window.open(url, "_blank", "noopener,noreferrer");
-            });
-            filesEl.append(card);
+            const row = document.createElement("div");
+            row.className = "file";
+
+            const left = document.createElement("div");
+            left.className = "row";
+            const nameA = document.createElement("a");
+            nameA.href = url;
+            nameA.textContent = fileName;
+            nameA.target = "_blank";
+            nameA.rel = "noopener";
+            left.appendChild(nameA);
+
+            const right = document.createElement("div");
+            right.className = "right";
+            const viewA = document.createElement("a");
+            viewA.href = url;
+            viewA.textContent = "View";
+            viewA.target = "_blank";
+            viewA.rel = "noopener";
+
+            const downA = document.createElement("a");
+            downA.href = url;
+            downA.textContent = "Download";
+            downA.setAttribute("download", fileName);
+
+            right.appendChild(viewA);
+            right.appendChild(downA);
+
+            row.appendChild(left);
+            row.appendChild(right);
+
+            listEl.appendChild(row);
           }
         }
 
-        if (!prefixes.length && !items.length) {
-          filesEl.append(el("div",{class:"muted"},["This folder is empty."]));
+        // 控制上传模块显隐
+        if (currentUser && isAdmin(currentUser.email)) {
+          uploader.classList.remove("hidden");
+        } else {
+          uploader.classList.add("hidden");
         }
       } catch (err) {
         console.error(err);
-        filesEl.append(el("div",{class:"notice"},["Failed to load. Check rules and path."]));
+        setError("Failed to list files: " + (err && err.message ? err.message : String(err)));
+        listEl.innerHTML = "";
       }
     }
 
-    // ==== Auth ====
-    loginBtn.onclick = async () => {
+    // ====== 7) Auth UI ======
+    loginBtn.onclick = async function () {
       try {
+        const provider = new GoogleAuthProvider();
         await signInWithPopup(auth, provider);
-      } catch (e) {
-        console.error(e);
-        alert("Sign-in failed. See console for details.");
+      } catch (err) {
+        console.error(err);
+        setError("Sign-in failed: " + (err && err.message ? err.message : String(err)));
       }
     };
-    logoutBtn.onclick = async () => {
-      await signOut(auth);
+
+    logoutBtn.onclick = async function () {
+      try {
+        await signOut(auth);
+      } catch (err) {
+        console.error(err);
+        setError("Sign-out failed: " + (err && err.message ? err.message : String(err)));
+      }
     };
 
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        whoEl.textContent = "Signed out";
-        loginBtn.classList.remove("hidden");
+    onAuthStateChanged(auth, function (user) {
+      currentUser = user || null;
+      if (currentUser) {
+        userEmailEl.textContent = currentUser.email || "";
+        loginBtn.classList.add("hidden");
+        logoutBtn.classList.remove("hidden");
+      } else {
+        userEmailEl.textContent = "";
         logoutBtn.classList.add("hidden");
-        needLoginEl.classList.remove("hidden");
-        appEl.classList.add("hidden");
-        adminPanel.classList.add("hidden");
-        return;
+        loginBtn.classList.remove("hidden");
       }
-      whoEl.textContent = "Signed in as " + (user.email || user.uid);
-      loginBtn.classList.add("hidden");
-      logoutBtn.classList.remove("hidden");
-      needLoginEl.classList.add("hidden");
-      appEl.classList.remove("hidden");
-
-      isAdmin = ADMIN_EMAILS.has(user.email || "");
-      adminPanel.classList.toggle("hidden", !isAdmin);
-      if (isAdmin) adminEmail.textContent = user.email || "";
-
-      // 初次加载
-      renderGrades();
-      setActiveGrade(currentPath.replace("/","")); // 保持在 5th
+      // 登录状态变化后刷新列表
+      loadFolder();
     });
 
-    // ==== Admin actions ====
-    createFolderBtn.onclick = async () => {
-      if (!isAdmin) return;
-      const name = (newFolderName.value || "").trim().replace(/\\/+$/,"");
-      if (!name) { alert("Folder name required"); return; }
-      // 通过上传一个占位 .keep 文件来“创建目录”
-      const keepRef = ref(storage, currentPath + name + "/.keep");
-      const blob = new Blob(["keep"], { type: "text/plain" });
+    // ====== 8) Upload (admins only) ======
+    uploadBtn.onclick = async function () {
+      if (!currentUser) {
+        setError("Please sign in first.");
+        return;
+      }
+      if (!isAdmin(currentUser.email)) {
+        setError("Only admins can upload.");
+        return;
+      }
+      const f = fileInput.files && fileInput.files[0];
+      if (!f) {
+        setError("Please choose a file.");
+        return;
+      }
+      setError("");
+      progressEl.textContent = "Uploading...";
+
       try {
-        await uploadBytes(keepRef, blob, { contentType: "text/plain" });
-        newFolderName.value = "";
-        await loadPath(currentPath);
-        alert("Folder created.");
-      } catch (e) {
-        console.error(e);
-        alert("Failed to create folder.");
+        const path = currentGrade + "/" + f.name;
+        const fileRef = ref(storage, path);
+        const task = uploadBytesResumable(fileRef, f);
+        task.on("state_changed", function (snap) {
+          const pct = snap.totalBytes ? Math.round((snap.bytesTransferred / snap.totalBytes) * 100) : 0;
+          progressEl.textContent = "Uploading... " + pct + "%";
+        }, function (err) {
+          console.error(err);
+          setError("Upload failed: " + (err && err.message ? err.message : String(err)));
+          progressEl.textContent = "";
+        }, async function () {
+          progressEl.textContent = "Upload complete.";
+          fileInput.value = "";
+          await loadFolder();
+          setTimeout(function () { progressEl.textContent = ""; }, 1500);
+        });
+      } catch (err) {
+        console.error(err);
+        setError("Upload failed: " + (err && err.message ? err.message : String(err)));
+        progressEl.textContent = "";
       }
     };
 
-    uploadBtn.onclick = async () => {
-      if (!isAdmin) return;
-      const f = fileInput.files?.[0];
-      if (!f) { alert("Choose a file first."); return; }
-      const fileRef = ref(storage, currentPath + f.name);
-      try {
-        await uploadBytes(fileRef, f, { contentType: f.type || "application/octet-stream" });
-        fileInput.value = "";
-        await loadPath(currentPath);
-        alert("Uploaded.");
-      } catch (e) {
-        console.error(e);
-        alert("Upload failed. Check Storage rules & login email.");
-      }
-    };
-
-    // 页面初始：渲染年级标签，但不显示内容，等待登录
-    renderGrades();
+    // ====== 9) Init UI ======
+    buildTabs();
+    folderNameEl.textContent = currentGrade + "/";
+    // 首次列表在 onAuthStateChanged 里触发；未登录时会提示先登录
   </script>
 </body>
 </html>
