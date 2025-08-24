@@ -2,264 +2,344 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>STEM Ms. Chang — Learning Resources</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- 避免 /favicon.ico 404 -->
-  <link rel="icon" href="data:,">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>STEM – Ms Chang | Learning Resources</title>
+  <!-- 避免 404 的占位 favicon -->
+  <link rel="icon" href="data:," />
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin:0; }
-    header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #eee; }
-    .brand { font-weight:700; }
-    .container { display:flex; min-height: calc(100vh - 56px); }
-    aside { width:220px; border-right:1px solid #eee; padding:12px; }
-    main { flex:1; padding:16px; }
-    button { padding:8px 12px; border:1px solid #ddd; background:#fff; border-radius:8px; cursor:pointer; }
-    button:hover { background:#f7f7f7; }
-    .grade-btn { width:100%; text-align:left; margin-bottom:8px; }
-    .row { display:flex; justify-content:space-between; align-items:center; gap:8px; margin:8px 0; }
-    .muted { color:#666; }
-    .pill { font-size:12px; padding:2px 8px; border-radius:12px; background:#f1f1f1; }
-    ul { list-style:none; padding:0; margin:0; }
-    li { padding:8px 0; border-bottom:1px solid #f0f0f0; display:flex; justify-content:space-between; gap:12px; align-items:center; }
-    .hidden { display:none; }
-    .error { color:#b00020; white-space:pre-wrap; }
-    input[type="file"] { display:none; }
-    .link { color:#0b57d0; text-decoration:none; }
-    .link:hover { text-decoration:underline; }
-    .debug { font-size:12px; color:#555; margin-top:8px;}
-    code { background:#f7f7f7; padding:2px 4px; border-radius:4px;}
+    :root {
+      --bg: #0f172a;      /* slate-900 */
+      --panel: #111827;   /* gray-900 */
+      --card: #1f2937;    /* gray-800 */
+      --text: #e5e7eb;    /* gray-200 */
+      --muted: #9ca3af;   /* gray-400 */
+      --accent: #34d399;  /* emerald-400 */
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: ui-sans-serif, system-ui, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    .topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 16px 20px; background: var(--panel); border-bottom:1px solid #1f2937;
+      position: sticky; top:0; z-index: 10;
+    }
+    .brand { display:flex; gap:12px; align-items:center; }
+    .brand h1 { margin:0; font-size:18px; letter-spacing: .3px; }
+    .subtitle { color: var(--muted); font-size:12px; line-height:1.1; }
+    .btn {
+      background: var(--accent); color:#041314; border:none; padding:8px 12px; border-radius:10px;
+      font-weight:600; cursor:pointer;
+    }
+    .btn.secondary { background:#374151; color:#fff; }
+    .layout { display:flex; min-height: calc(100vh - 64px); }
+    .sidebar {
+      width: 240px; border-right: 1px solid #1f2937; background: var(--panel); padding: 14px;
+    }
+    .grade-btn {
+      width:100%; padding:10px 12px; margin-bottom:8px; border-radius:10px; background:#1f2937; color:#fff;
+      text-align:left; border:1px solid #374151; cursor:pointer;
+    }
+    .grade-btn.active { outline:2px solid var(--accent); }
+    .content { flex:1; padding: 18px; }
+    .card {
+      background: var(--card); border:1px solid #374151; border-radius:14px; padding:16px; margin-bottom:16px;
+    }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    select, input[type="file"] {
+      background:#0b1220; color:#fff; border:1px solid #374151; border-radius:10px; padding:8px 10px;
+    }
+    .files { margin:0; padding:0; list-style:none; }
+    .files li {
+      display:flex; justify-content:space-between; align-items:center;
+      background:#0b1220; border:1px solid #1f2937; border-radius:10px; padding:10px 12px; margin:8px 0;
+    }
+    .muted { color: var(--muted); font-size:12px; }
+    a.dl { color:#93c5fd; text-decoration:none; font-weight:600; }
+    a.dl:hover { text-decoration:underline; }
+    .hidden { display:none !important; }
+    .footer {
+      color: var(--muted); font-size:12px; text-align:center; padding:18px 10px;
+    }
+    .profile {
+      font-size: 12px; color: var(--muted);
+    }
   </style>
 </head>
 <body>
-  <header>
-    <div class="brand">STEM Ms. Chang — Learning Resources</div>
-    <div>
-      <span id="userEmail" class="muted"></span>
-      <button id="loginBtn">Sign in with Google</button>
-      <button id="logoutBtn" class="hidden">Sign out</button>
-    </div>
-  </header>
-
-  <div class="container">
-    <aside>
-      <div class="row">
-        <div class="muted">Folders</div>
-        <button id="addFolderBtn" class="hidden" title="Admin only">+ New Folder</button>
+  <div class="topbar">
+    <div class="brand">
+      <div>
+        <h1>STEM – Ms Chang</h1>
+        <div class="subtitle profile">
+          Xiaqing (Vivien) Chang · STEM Teacher K–8<br/>
+          Harmony Science Academy, 3701 W Loop 289, Lubbock, TX 79407 · 806-747-1000
+        </div>
       </div>
-      <div id="gradeList"></div>
-      <div class="debug">
-        <div>Bucket: <code id="debugBucket"></code></div>
-        <div>Domain: <code id="debugDomain"></code></div>
+    </div>
+    <div id="userBox">
+      <button id="loginBtn" class="btn">Sign in with Google</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <button class="grade-btn active" data-grade="5th">5th Grade</button>
+      <button class="grade-btn" data-grade="6th">6th Grade</button>
+      <button class="grade-btn" data-grade="7th">7th Grade</button>
+      <button class="grade-btn" data-grade="8th">8th Grade</button>
+      <div class="card" style="margin-top:12px;">
+        <div class="muted">Sign in to access and download class materials.</div>
       </div>
     </aside>
 
-    <main>
-      <h2 id="currentGradeTitle">Select a folder</h2>
-      <div id="uploadBar" class="row hidden">
-        <div class="pill">Admin upload</div>
-        <label><button id="chooseFileBtn">Choose file</button><input id="fileInput" type="file" /></label>
-        <button id="uploadBtn">Upload to current folder</button>
-        <span id="uploadStatus" class="muted"></span>
+    <main class="content">
+      <div id="authGuard" class="card">
+        <strong>Not signed in.</strong> Please click “Sign in with Google” on the top right.
       </div>
 
-      <div id="hint" class="muted">
-        You can browse and download without sign-in. Sign in only if you need to upload.
-      </div>
-      <div id="loading" class="muted hidden">Loading...</div>
-      <div id="error" class="error hidden"></div>
+      <section id="drive" class="hidden">
+        <div class="card">
+          <div class="row" style="justify-content:space-between">
+            <div>
+              <div style="font-weight:700; font-size:18px; margin-bottom:6px;">
+                <span id="pathTitle">5th / (root)</span>
+              </div>
+              <div class="muted">Only signed-in users can view and download files.</div>
+            </div>
+            <div class="muted" id="whoami"></div>
+          </div>
+        </div>
 
-      <ul id="fileList"></ul>
+        <div class="card">
+          <div class="row">
+            <label for="folderSelect">Folder</label>
+            <select id="folderSelect">
+              <option value="">(root)</option>
+            </select>
+            <button id="addFolderBtn" class="btn secondary">+ New Folder</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="row">
+            <input type="file" id="fileInput" multiple />
+            <button id="uploadBtn" class="btn">Upload to current folder</button>
+          </div>
+          <div class="muted" style="margin-top:6px;">Tip: You can upload .pdf / .docx / .pptx etc.</div>
+        </div>
+
+        <div class="card">
+          <ul id="fileList" class="files"></ul>
+          <div id="emptyHint" class="muted hidden">No files yet in this folder.</div>
+        </div>
+      </section>
+
+      <div class="footer">© STEM – Ms Chang • Learning Resources</div>
     </main>
   </div>
 
+  <!-- Firebase (modular v10) -->
   <script type="module">
-    /************ Firebase SDK (v10) ************/
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
       getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import {
       getStorage, ref, listAll, getDownloadURL, uploadBytes
-    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-    // ✅ 一定用 appspot.com 这个结尾（这是正确的 bucket 名）
+    // ==== 🔧 Firebase 配置（已改对 storageBucket）====
     const firebaseConfig = {
       apiKey: "AIzaSyDELcdhJKPrSVOGROj-yKl5rSGeNst6Z7k",
       authDomain: "chang-stem-class--materials.firebaseapp.com",
       projectId: "chang-stem-class--materials",
-      storageBucket: "chang-stem-class--materials.appspot.com",
+      storageBucket: "chang-stem-class--materials.appspot.com", // ✅ 必须是 appspot.com
       messagingSenderId: "1066269130031",
-      appId: "1:1066269130031:web:62b518c60d0c724571f5da"
+      appId: "1:1066269130031:web:62b518c60d0c724571f5da",
+      // measurementId 可留空，不需要 analytics
     };
 
+    // ==== 🔌 初始化 ====
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
     const storage = getStorage(app);
 
-    /************ UI elements ************/
+    // ==== 🧩 简单 UI 绑定 ====
+    const authGuard = document.getElementById('authGuard');
+    const drive = document.getElementById('drive');
     const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const userEmailEl = document.getElementById('userEmail');
-    const currentGradeTitle = document.getElementById('currentGradeTitle');
-    const gradeList = document.getElementById('gradeList');
-    const fileList = document.getElementById('fileList');
-    const loading = document.getElementById('loading');
-    const errorBox = document.getElementById('error');
-
+    const userBox = document.getElementById('userBox');
+    const whoami = document.getElementById('whoami');
+    const gradeButtons = Array.from(document.querySelectorAll('.grade-btn'));
+    const folderSelect = document.getElementById('folderSelect');
     const addFolderBtn = document.getElementById('addFolderBtn');
-    const uploadBar = document.getElementById('uploadBar');
-    const chooseFileBtn = document.getElementById('chooseFileBtn');
     const fileInput = document.getElementById('fileInput');
     const uploadBtn = document.getElementById('uploadBtn');
-    const uploadStatus = document.getElementById('uploadStatus');
+    const fileList = document.getElementById('fileList');
+    const emptyHint = document.getElementById('emptyHint');
+    const pathTitle = document.getElementById('pathTitle');
 
-    const debugBucket = document.getElementById('debugBucket');
-    const debugDomain = document.getElementById('debugDomain');
+    let currentGrade = "5th";
 
-    // 你的管理员邮箱（只有它能上传/新建）
-    const ADMIN_EMAIL = "vivien.chang10@gmail.com";
-
-    // 左侧文件夹（你也可以用“+ New Folder”创建更多）
-    let gradeFolders = ["5th", "6th", "7th", "8th"];
-    let currentGrade = null;
-    let chosenFile = null;
-
-    debugBucket.textContent = firebaseConfig.storageBucket;
-    debugDomain.textContent = location.host;
-
-    function setError(msg) {
-      errorBox.textContent = msg;
-      errorBox.classList.remove('hidden');
-    }
-    function clearError() {
-      errorBox.textContent = '';
-      errorBox.classList.add('hidden');
-    }
-
-    function renderGrades() {
-      gradeList.innerHTML = '';
-      gradeFolders.forEach(g => {
-        const btn = document.createElement('button');
-        btn.className = 'grade-btn';
-        btn.textContent = g;
-        btn.onclick = () => {
-          currentGrade = g;
-          currentGradeTitle.textContent = g + " Folder";
-          loadFilesForGrade(g);
+    // 登录/登出按钮
+    function renderAuthButtons(user) {
+      if (user) {
+        userBox.innerHTML = `
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="muted" title="${user.email}">Signed in: ${user.email}</span>
+            <button id="logout" class="btn secondary">Sign out</button>
+          </div>`;
+        document.getElementById('logout').onclick = () => signOut(auth);
+      } else {
+        userBox.innerHTML = `<button id="loginBtn" class="btn">Sign in with Google</button>`;
+        document.getElementById('loginBtn').onclick = async () => {
+          try {
+            await signInWithPopup(auth, provider);
+          } catch (e) {
+            console.error(e);
+            alert(e.message || e.code || e);
+          }
         };
-        gradeList.appendChild(btn);
-      });
-    }
-
-    async function loadFilesForGrade(grade) {
-      clearError();
-      loading.classList.remove('hidden');
-      fileList.innerHTML = '';
-
-      try {
-        // 现在规则是公开可读，所以未登录也能列；等你要收紧时再改规则与逻辑
-        const dirRef = ref(storage, `${grade}/`);
-        const res = await listAll(dirRef);
-
-        // 子文件夹
-        res.prefixes.forEach((folderRef) => {
-          const li = document.createElement('li');
-          li.innerHTML = `
-            <span>📁 ${folderRef.name}</span>
-            <a class="link" href="javascript:void(0)">Open</a>
-          `;
-          li.querySelector('a').onclick = () => {
-            currentGrade = `${grade}/${folderRef.name}`;
-            currentGradeTitle.textContent = currentGrade;
-            loadFilesForGrade(currentGrade);
-          };
-          fileList.appendChild(li);
-        });
-
-        // 文件
-        for (const itemRef of res.items) {
-          const url = await getDownloadURL(itemRef);
-          const li = document.createElement('li');
-          li.innerHTML = `
-            <span>📄 ${itemRef.name}</span>
-            <a class="link" href="${url}" target="_blank" rel="noopener">Download</a>
-          `;
-          fileList.appendChild(li);
-        }
-
-        if (res.prefixes.length === 0 && res.items.length === 0) {
-          const li = document.createElement('li');
-          li.innerHTML = `<span class="muted">This folder is empty.</span>`;
-          fileList.appendChild(li);
-        }
-      } catch (e) {
-        setError(
-          "Load failed. 常见原因：\n" +
-          "• 规则未 Publish；\n" +
-          "• App Check 对 Storage 被 Enforce（未集成前不要 Enforce）；\n" +
-          "• storageBucket 写错，必须是 *.appspot.com。\n\n" +
-          "Details: " + (e.message || e.toString())
-        );
-      } finally {
-        loading.classList.add('hidden');
       }
     }
 
-    // 登录/登出（仅管理员需要，用来上传/建文件夹）
-    loginBtn.onclick = async () => {
-      clearError();
-      try { await signInWithPopup(auth, provider); }
-      catch (e) { setError("Sign-in failed: " + (e.message || e.toString())); }
-    };
-    logoutBtn.onclick = async () => { await signOut(auth); };
-
-    onAuthStateChanged(auth, (user) => {
-      const email = (user && user.email) ? user.email : "";
-      userEmailEl.textContent = email;
-      loginBtn.classList.toggle('hidden', !!user);
-      logoutBtn.classList.toggle('hidden', !user);
-
-      const isAdmin = email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-      addFolderBtn.classList.toggle('hidden', !isAdmin);
-      uploadBar.classList.toggle('hidden', !isAdmin);
+    // 年级切换
+    gradeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        gradeButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentGrade = btn.dataset.grade;
+        loadFoldersAndFiles();
+      });
     });
 
-    // Admin：新增“文件夹”（通过占位文件实现）
-    addFolderBtn.onclick = async () => {
-      const name = prompt("New folder name (e.g., '5th-Unit1'):");
+    folderSelect.addEventListener('change', () => {
+      loadFiles();
+    });
+
+    addFolderBtn.addEventListener('click', async () => {
+      const name = prompt("New folder name (no slashes):")?.trim();
       if (!name) return;
-      try {
-        const placeholderRef = ref(storage, `${name}/.keep`);
-        await uploadBytes(placeholderRef, new Blob([""], { type: "text/plain"}));
-        if (!gradeFolders.includes(name)) gradeFolders.push(name);
-        renderGrades();
-        alert("Folder created: " + name);
-      } catch (e) {
-        setError("Create folder failed: " + (e.message || e.toString()));
+      if (name.includes('/')) {
+        alert("Folder name cannot contain '/'.");
+        return;
       }
-    };
-
-    // Admin：上传
-    chooseFileBtn.onclick = () => fileInput.click();
-    fileInput.onchange = () => { chosenFile = fileInput.files?.[0] || null; uploadStatus.textContent = chosenFile ? chosenFile.name : ""; };
-    uploadBtn.onclick = async () => {
-      if (!chosenFile) { alert("Choose a file first."); return; }
-      if (!currentGrade) { alert("Choose a folder first."); return; }
       try {
-        uploadStatus.textContent = "Uploading...";
-        const destRef = ref(storage, `${currentGrade}/${chosenFile.name}`);
-        await uploadBytes(destRef, chosenFile);
-        uploadStatus.textContent = "Upload done.";
-        loadFilesForGrade(currentGrade);
+        // 通过创建一个占位对象实现“新建文件夹”
+        const keepRef = ref(storage, `${currentGrade}/${name}/.keep`);
+        await uploadBytes(keepRef, new Uint8Array(), { contentType: "text/plain" });
+        await loadFoldersAndFiles();
+        alert(`Folder "${name}" created.`);
       } catch (e) {
-        setError("Upload failed: " + (e.message || e.toString()));
-        uploadStatus.textContent = "";
+        console.error(e);
+        alert(e.message || e.code || e);
       }
-    };
+    });
 
-    // 初始化左侧文件夹
-    renderGrades();
+    uploadBtn.addEventListener('click', async () => {
+      const files = fileInput.files;
+      if (!files || !files.length) {
+        alert("Please choose file(s) to upload.");
+        return;
+      }
+      const sub = folderSelect.value; // "" means root
+      try {
+        for (const f of files) {
+          const path = sub ? `${currentGrade}/${sub}/${f.name}` : `${currentGrade}/${f.name}`;
+          const fileRef = ref(storage, path);
+          await uploadBytes(fileRef, f);
+        }
+        fileInput.value = "";
+        await loadFiles();
+        alert("Upload complete.");
+      } catch (e) {
+        console.error(e);
+        alert(e.message || e.code || e);
+      }
+    });
+
+    // 加载“子文件夹 + 文件”
+    async function loadFoldersAndFiles() {
+      pathTitle.textContent = `${currentGrade} / ${folderSelect.value || "(root)"}`;
+      folderSelect.innerHTML = `<option value="">(root)</option>`;
+      await loadFolders();  // 加载子文件夹
+      await loadFiles();    // 加载当前文件
+    }
+
+    async function loadFolders() {
+      try {
+        const baseRef = ref(storage, `${currentGrade}/`);
+        const { prefixes } = await listAll(baseRef);
+        prefixes.sort((a, b) => a.name.localeCompare(b.name));
+        for (const p of prefixes) {
+          const name = p.name; // 子文件夹名
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          folderSelect.appendChild(opt);
+        }
+      } catch (e) {
+        console.error(e);
+        alert("Failed to list folders: " + (e.message || e.code || e));
+      }
+    }
+
+    async function loadFiles() {
+      fileList.innerHTML = "";
+      emptyHint.classList.add('hidden');
+      pathTitle.textContent = `${currentGrade} / ${folderSelect.value || "(root)"}`;
+
+      try {
+        const sub = folderSelect.value;
+        const folderPath = sub ? `${currentGrade}/${sub}/` : `${currentGrade}/`;
+        const folderRef = ref(storage, folderPath);
+        const { items } = await listAll(folderRef);
+
+        // 过滤掉 .keep
+        const realItems = items.filter(it => !it.name.endsWith('/.keep') && it.name !== '.keep');
+
+        if (!realItems.length) {
+          emptyHint.classList.remove('hidden');
+          return;
+        }
+
+        // 生成下载链接
+        for (const it of realItems) {
+          const url = await getDownloadURL(it);
+          const li = document.createElement('li');
+          const niceName = it.name;
+          li.innerHTML = `
+            <span>${niceName}</span>
+            <a class="dl" href="${url}" target="_blank" rel="noopener">Download</a>
+          `;
+          fileList.appendChild(li);
+        }
+      } catch (e) {
+        console.error(e);
+        alert("Failed to list files: " + (e.message || e.code || e));
+      }
+    }
+
+    // 监听登录状态
+    onAuthStateChanged(auth, (user) => {
+      renderAuthButtons(user);
+      if (user) {
+        whoami.textContent = `Signed in as ${user.email}`;
+        authGuard.classList.add('hidden');
+        drive.classList.remove('hidden');
+        loadFoldersAndFiles();
+      } else {
+        whoami.textContent = "";
+        drive.classList.add('hidden');
+        authGuard.classList.remove('hidden');
+      }
+    });
+
+    // 初始渲染按钮
+    renderAuthButtons(null);
   </script>
 </body>
 </html>
