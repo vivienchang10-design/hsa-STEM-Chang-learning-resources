@@ -1,379 +1,241 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>STEM Ms Chang - Learning Resources</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <!-- 避免 favicon 404 -->
-  <link rel="icon" href="data:,">
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>STEM Ms. Chang – Learning Resources</title>
+  <!-- 避免 /favicon.ico 404 -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext y='24' font-size='24'%3E🔬%3C/text%3E%3C/svg%3E">
   <style>
-    :root {
-      --bg: #0b132b;
-      --card: #1c2541;
-      --muted: #3a506b;
-      --accent: #5bc0be;
-      --text: #e6f1ff;
-      --warn: #ffce73;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; background: var(--bg); color: var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-    }
-    header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 16px 20px; background: rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.07);
-      position: sticky; top: 0; backdrop-filter: blur(8px); z-index: 5;
-    }
-    .title { font-weight: 700; letter-spacing: .3px; }
-    .sub { font-size: 12px; opacity: .9; line-height: 1.2; margin-top: 2px; }
-    .actions { display: flex; align-items: center; gap: 8px; }
-    button, .btn {
-      background: var(--accent); color: #062c30; border: 0; padding: 8px 12px; border-radius: 10px; font-weight: 700;
-      cursor: pointer;
-    }
-    button.secondary { background: var(--muted); color: #eaf6ff; }
-    main { max-width: 980px; margin: 24px auto; padding: 0 16px; }
-    .notice {
-      background: #12223f; border: 1px solid rgba(91,192,190,.35);
-      color: #c7f5f4; padding: 12px 14px; border-radius: 12px; margin-bottom: 12px;
-    }
-    .tabs { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin: 16px 0 12px; }
-    .tab {
-      background: var(--card); padding: 10px 12px; border-radius: 12px; text-align: center; cursor: pointer;
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-    .tab.active { outline: 2px solid var(--accent); }
-    .card {
-      background: var(--card); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 14px;
-    }
-    .list { display: grid; gap: 8px; }
-    .file {
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
-      background: #131b33; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);
-    }
-    .file a { color: #b5e5e4; text-decoration: none; font-weight: 600; }
-    .muted { color: #9fb2c8; font-size: 13px; }
-    .row { display: flex; align-items: center; gap: 10px; }
-    .right { display: flex; gap: 8px; }
-    .hidden { display: none !important; }
-    .uploader { margin-top: 14px; border-top: 1px dashed rgba(255,255,255,0.12); padding-top: 14px; }
-    .small { font-size: 12px; color: #c9d7ff; }
-    .error {
-      background: #3b1a1a; color: #ffdada; border: 1px solid rgba(255, 128, 128, .35);
-      padding: 10px 12px; border-radius: 12px; margin-bottom: 12px;
-    }
+    body{font-family:system-ui,Arial,Helvetica,sans-serif;margin:0;background:#f7f7fb;color:#222}
+    header{background:#1f2937;color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .title{font-weight:700}
+    .sub{opacity:.9;font-size:14px}
+    .btn{padding:8px 12px;border:0;border-radius:10px;cursor:pointer}
+    .primary{background:#2563eb;color:#fff}
+    .ghost{background:#fff;color:#111;border:1px solid #e5e7eb}
+    main{max-width:960px;margin:24px auto;padding:0 16px}
+    .hidden{display:none}
+    .grades{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px;margin-bottom:12px}
+    .muted{color:#6b7280}
+    a{color:#2563eb;text-decoration:none}
+    a:hover{text-decoration:underline}
+    .folder{font-weight:600}
+    .file{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px dashed #eee}
+    .file:last-child{border-bottom:0}
+    .note{background:#fff8e1;border:1px solid #fde68a;border-radius:10px;padding:10px}
   </style>
 </head>
 <body>
   <header>
     <div>
-      <div class="title">STEM Ms Chang</div>
-      <div class="sub">
-        Xiaqing Chang — STEM Teacher K-8 · Harmony Science Academy, 3701 W Loop 289, Lubbock, TX 79407 · 806-747-1000
-      </div>
+      <div class="title">STEM Ms. Chang</div>
+      <div class="sub">K–8 STEM • Harmony Science Academy • Lubbock, TX</div>
     </div>
-    <div class="actions">
-      <span id="userEmail" class="muted"></span>
-      <button id="loginBtn">Sign in</button>
-      <button id="logoutBtn" class="secondary hidden">Sign out</button>
+    <div>
+      <button id="loginBtn" class="btn primary">Sign in with Google</button>
+      <button id="logoutBtn" class="btn ghost hidden">Sign out</button>
     </div>
   </header>
 
   <main>
-    <div id="errorBox" class="error hidden"></div>
-    <div id="infoBox" class="notice hidden"></div>
+    <div id="needAuth" class="card">
+      <div class="note">Please sign in with Google to view and download class materials.</div>
+      <div class="muted" style="margin-top:8px">Tip: make sure your site URL
+        <code>hsa-stem-chang-learning-resources.vercel.app</code> is in Firebase → Authentication → Settings → Authorized domains.
+      </div>
+    </div>
 
-    <div class="tabs" id="tabs"></div>
-
-    <div class="card">
-      <div class="row">
-        <div class="muted">Folder:</div>
-        <div id="folderName" class="muted">—</div>
+    <div id="authedArea" class="hidden">
+      <div class="card">
+        <div id="userInfo" class="muted">Signed in</div>
+        <div class="grades">
+          <button class="btn ghost" data-grade="5th">5th Grade</button>
+          <button class="btn ghost" data-grade="6th">6th Grade</button>
+          <button class="btn ghost" data-grade="7th">7th Grade</button>
+          <button class="btn ghost" data-grade="8th">8th Grade</button>
+        </div>
+        <div id="status" class="muted"></div>
       </div>
 
-      <div id="list" class="list" style="margin-top: 10px;"></div>
-
-      <div id="uploader" class="uploader hidden">
-        <div class="row" style="justify-content: space-between;">
-          <div>
-            <div style="font-weight:700;margin-bottom:6px;">Upload (admins only)</div>
-            <div class="small">File will be saved to the current folder.</div>
-          </div>
-          <div class="right">
-            <input type="file" id="fileInput" />
-            <button id="uploadBtn" class="secondary">Upload</button>
-          </div>
-        </div>
-        <div id="progress" class="small muted"></div>
+      <div id="list" class="card">
+        <div class="muted">Select a grade above to list files.</div>
       </div>
     </div>
   </main>
 
-  <!-- Firebase v10 ESM -->
+  <!-- Firebase v11 模块化 SDK（官方 CDN） -->
   <script type="module">
-    // ====== 0) Config ======
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import {
+      getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import {
+      getStorage, ref, listAll, getDownloadURL
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
+
+    // ==== 你的 Firebase 配置（保持 appspot.com 作 storageBucket）====
     const firebaseConfig = {
       apiKey: "AIzaSyDELcdhJKPrSVOGROj-yKl5rSGeNst6Z7k",
       authDomain: "chang-stem-class--materials.firebaseapp.com",
       projectId: "chang-stem-class--materials",
       storageBucket: "chang-stem-class--materials.appspot.com",
-      appId: "1:1066269130031:web:62b518c60d0c724571f5da"
+      messagingSenderId: "1066269130031",
+      appId: "1:1066269130031:web:62b518c60d0c724571f5da",
+      measurementId: "G-D4N8JERGV8"
     };
 
-    const GRADES = ["5th", "6th", "7th", "8th"];
-    const ADMIN_EMAILS = ["vivien.chang10@gmail.com"]; // 可加: "xchang@harmonytx.org"
-
-    // ====== 1) Imports ======
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-    import {
-      getAuth, GoogleAuthProvider, signInWithPopup,
-      onAuthStateChanged, signOut
-    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-    import {
-      getStorage, ref, listAll, getDownloadURL, uploadBytesResumable
-    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
-
-    // ====== 2) Init ======
+    // ==== 初始化 ====
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
     const storage = getStorage(app);
 
-    // ====== 3) UI refs ======
-    const tabs = document.getElementById("tabs");
-    const listEl = document.getElementById("list");
-    const folderNameEl = document.getElementById("folderName");
-    const userEmailEl = document.getElementById("userEmail");
+    // ==== 元素 ====
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
-    const uploader = document.getElementById("uploader");
-    const fileInput = document.getElementById("fileInput");
-    const uploadBtn = document.getElementById("uploadBtn");
-    const progressEl = document.getElementById("progress");
-    const infoBox = document.getElementById("infoBox");
-    const errorBox = document.getElementById("errorBox");
+    const needAuth = document.getElementById("needAuth");
+    const authedArea = document.getElementById("authedArea");
+    const userInfo = document.getElementById("userInfo");
+    const listEl = document.getElementById("list");
+    const statusEl = document.getElementById("status");
 
-    let currentGrade = GRADES[0];
-    let currentUser = null;
-
-    // ====== 4) Helpers ======
-    function setError(msg) {
-      if (!msg) {
-        errorBox.classList.add("hidden");
-        errorBox.textContent = "";
-        return;
-      }
-      errorBox.textContent = msg;
-      errorBox.classList.remove("hidden");
-    }
-
-    function setInfo(msg) {
-      if (!msg) {
-        infoBox.classList.add("hidden");
-        infoBox.textContent = "";
-        return;
-      }
-      infoBox.textContent = msg;
-      infoBox.classList.remove("hidden");
-    }
-
-    function bytesToSize(bytes) {
-      if (!bytes && bytes !== 0) return "";
-      const sizes = ["B","KB","MB","GB","TB"];
-      const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), sizes.length - 1);
-      return (bytes / Math.pow(1024, i)).toFixed(2) + " " + sizes[i];
-    }
-
-    function isAdmin(email) {
-      return ADMIN_EMAILS.indexOf(String(email || "").toLowerCase()) !== -1;
-    }
-
-    function requireSignedIn() {
-      if (!currentUser) {
-        setInfo("Please sign in to view and download class materials.");
-        listEl.innerHTML = "";
-        uploader.classList.add("hidden");
-        return false;
-      }
-      setInfo("");
-      return true;
-    }
-
-    // ====== 5) Build tabs ======
-    function buildTabs() {
-      tabs.innerHTML = "";
-      GRADES.forEach(g => {
-        const b = document.createElement("div");
-        b.className = "tab" + (g === currentGrade ? " active" : "");
-        b.textContent = g;
-        b.dataset.grade = g;
-        b.onclick = function () {
-          if (g === currentGrade) return;
-          currentGrade = g;
-          document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-          b.classList.add("active");
-          loadFolder();
-        };
-        tabs.appendChild(b);
-      });
-    }
-
-    // ====== 6) List folder ======
-    async function loadFolder() {
-      folderNameEl.textContent = currentGrade + "/";
-
-      if (!requireSignedIn()) {
-        listEl.innerHTML = "";
-        return;
-      }
-
-      setError("");
-      listEl.innerHTML = "<div class='muted'>Loading...</div>";
-
+    // 登录 / 登出
+    loginBtn.onclick = async () => {
       try {
-        const folderRef = ref(storage, currentGrade + "/");
-        const res = await listAll(folderRef);
-
-        if (res.items.length === 0) {
-          listEl.innerHTML = "<div class='muted'>This folder is empty.</div>";
-        } else {
-          listEl.innerHTML = "";
-          // 逐个生成下载链接
-          for (const itemRef of res.items) {
-            const url = await getDownloadURL(itemRef);
-            const fileName = itemRef.name;
-
-            const row = document.createElement("div");
-            row.className = "file";
-
-            const left = document.createElement("div");
-            left.className = "row";
-            const nameA = document.createElement("a");
-            nameA.href = url;
-            nameA.textContent = fileName;
-            nameA.target = "_blank";
-            nameA.rel = "noopener";
-            left.appendChild(nameA);
-
-            const right = document.createElement("div");
-            right.className = "right";
-            const viewA = document.createElement("a");
-            viewA.href = url;
-            viewA.textContent = "View";
-            viewA.target = "_blank";
-            viewA.rel = "noopener";
-
-            const downA = document.createElement("a");
-            downA.href = url;
-            downA.textContent = "Download";
-            downA.setAttribute("download", fileName);
-
-            right.appendChild(viewA);
-            right.appendChild(downA);
-
-            row.appendChild(left);
-            row.appendChild(right);
-
-            listEl.appendChild(row);
-          }
-        }
-
-        // 控制上传模块显隐
-        if (currentUser && isAdmin(currentUser.email)) {
-          uploader.classList.remove("hidden");
-        } else {
-          uploader.classList.add("hidden");
-        }
-      } catch (err) {
-        console.error(err);
-        setError("Failed to list files: " + (err && err.message ? err.message : String(err)));
-        listEl.innerHTML = "";
-      }
-    }
-
-    // ====== 7) Auth UI ======
-    loginBtn.onclick = async function () {
-      try {
-        const provider = new GoogleAuthProvider();
         await signInWithPopup(auth, provider);
       } catch (err) {
         console.error(err);
-        setError("Sign-in failed: " + (err && err.message ? err.message : String(err)));
+        alert("Sign-in failed: " + (err?.message || err));
       }
     };
+    logoutBtn.onclick = async () => { await signOut(auth); };
 
-    logoutBtn.onclick = async function () {
-      try {
-        await signOut(auth);
-      } catch (err) {
-        console.error(err);
-        setError("Sign-out failed: " + (err && err.message ? err.message : String(err)));
-      }
-    };
-
-    onAuthStateChanged(auth, function (user) {
-      currentUser = user || null;
-      if (currentUser) {
-        userEmailEl.textContent = currentUser.email || "";
+    // 只在登录后列出文件（避免未授权引起的“像 CORS”的 403）
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
         loginBtn.classList.add("hidden");
         logoutBtn.classList.remove("hidden");
+        needAuth.classList.add("hidden");
+        authedArea.classList.remove("hidden");
+        userInfo.textContent = `Signed in as ${user.email}`;
       } else {
-        userEmailEl.textContent = "";
-        logoutBtn.classList.add("hidden");
         loginBtn.classList.remove("hidden");
+        logoutBtn.classList.add("hidden");
+        needAuth.classList.remove("hidden");
+        authedArea.classList.add("hidden");
+        listEl.innerHTML = "<div class='muted'>Select a grade after signing in.</div>";
       }
-      // 登录状态变化后刷新列表
-      loadFolder();
     });
 
-    // ====== 8) Upload (admins only) ======
-    uploadBtn.onclick = async function () {
-      if (!currentUser) {
-        setError("Please sign in first.");
-        return;
-      }
-      if (!isAdmin(currentUser.email)) {
-        setError("Only admins can upload.");
-        return;
-      }
-      const f = fileInput.files && fileInput.files[0];
-      if (!f) {
-        setError("Please choose a file.");
-        return;
-      }
-      setError("");
-      progressEl.textContent = "Uploading...";
+    // 绑定年级按钮
+    document.querySelectorAll("[data-grade]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const grade = btn.getAttribute("data-grade");
+        await renderGrade(grade);
+      });
+    });
 
+    async function renderGrade(grade) {
+      statusEl.textContent = "Loading…";
+      listEl.innerHTML = "";
       try {
-        const path = currentGrade + "/" + f.name;
-        const fileRef = ref(storage, path);
-        const task = uploadBytesResumable(fileRef, f);
-        task.on("state_changed", function (snap) {
-          const pct = snap.totalBytes ? Math.round((snap.bytesTransferred / snap.totalBytes) * 100) : 0;
-          progressEl.textContent = "Uploading... " + pct + "%";
-        }, function (err) {
-          console.error(err);
-          setError("Upload failed: " + (err && err.message ? err.message : String(err)));
-          progressEl.textContent = "";
-        }, async function () {
-          progressEl.textContent = "Upload complete.";
-          fileInput.value = "";
-          await loadFolder();
-          setTimeout(function () { progressEl.textContent = ""; }, 1500);
-        });
-      } catch (err) {
-        console.error(err);
-        setError("Upload failed: " + (err && err.message ? err.message : String(err)));
-        progressEl.textContent = "";
-      }
-    };
+        const rootRef = ref(storage, `${grade}/`);
+        // 只列“这一层”，不递归，简单可靠
+        const res = await listAll(rootRef);
 
-    // ====== 9) Init UI ======
-    buildTabs();
-    folderNameEl.textContent = currentGrade + "/";
-    // 首次列表在 onAuthStateChanged 里触发；未登录时会提示先登录
+        const container = document.createElement("div");
+
+        // 子文件夹
+        if (res.prefixes.length) {
+          const h = document.createElement("div");
+          h.className = "folder";
+          h.textContent = "Folders";
+          container.appendChild(h);
+          res.prefixes.forEach(p => {
+            const row = document.createElement("div");
+            row.className = "file";
+            row.innerHTML = `<span>📁 ${p.name}/</span>
+              <a href="#" data-sub="${p.fullPath}">Open</a>`;
+            container.appendChild(row);
+          });
+        }
+
+        // 当前层文件
+        if (res.items.length) {
+          const h2 = document.createElement("div");
+          h2.className = "folder";
+          h2.style.marginTop = "8px";
+          h2.textContent = "Files";
+          container.appendChild(h2);
+
+          for (const itemRef of res.items) {
+            const url = await getDownloadURL(itemRef);
+            const row = document.createElement("div");
+            row.className = "file";
+            row.innerHTML = `<span>📄 ${itemRef.name}</span>
+              <a href="${url}" download>Download</a>`;
+            container.appendChild(row);
+          }
+        }
+
+        if (!res.prefixes.length && !res.items.length) {
+          container.innerHTML = `<div class="muted">No files yet in <strong>${grade}</strong>.</div>`;
+        }
+
+        listEl.appendChild(container);
+
+        // 点击“Open”进入子文件夹（再次 listAll）
+        listEl.querySelectorAll("[data-sub]").forEach(a => {
+          a.addEventListener("click", async (e) => {
+            e.preventDefault();
+            const sub = a.getAttribute("data-sub");
+            await renderFolder(sub);
+          });
+        });
+
+        statusEl.textContent = "";
+      } catch (e) {
+        console.error(e);
+        statusEl.textContent = "Failed to load. Check Firebase rules / App Check (should be Unenforced) and Authorized domains.";
+      }
+    }
+
+    async function renderFolder(path) {
+      statusEl.textContent = `Loading ${path}…`;
+      listEl.innerHTML = "";
+      try {
+        const res = await listAll(ref(storage, path + "/"));
+        const container = document.createElement("div");
+        const h = document.createElement("div");
+        h.className = "folder";
+        h.textContent = path;
+        container.appendChild(h);
+
+        for (const itemRef of res.items) {
+          const url = await getDownloadURL(itemRef);
+          const row = document.createElement("div");
+          row.className = "file";
+          row.innerHTML = `<span>📄 ${itemRef.name}</span>
+            <a href="${url}" download>Download</a>`;
+          container.appendChild(row);
+        }
+
+        if (!res.items.length) {
+          const empty = document.createElement("div");
+          empty.className = "muted";
+          empty.textContent = "No files in this folder.";
+          container.appendChild(empty);
+        }
+
+        listEl.appendChild(container);
+        statusEl.textContent = "";
+      } catch (e) {
+        console.error(e);
+        statusEl.textContent = "Failed to open folder.";
+      }
+    }
   </script>
 </body>
 </html>
