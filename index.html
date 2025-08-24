@@ -1,195 +1,278 @@
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import {
-    getStorage, ref, listAll, uploadBytes, getDownloadURL,
-    getMetadata, deleteObject
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>STEM Ms. Chang — Learning Resources</title>
 
-  // === 你的项目配置（保持你现在的，桶是 firebasestorage.app） ===
-  const firebaseConfig = {
-    apiKey: "AIzaSyDELcdhJKPrSVOGROj-yKl5rSGeNst6Z7k",
-    authDomain: "chang-stem-class--materials.firebaseapp.com",
-    projectId: "chang-stem-class--materials",
-    storageBucket: "chang-stem-class--materials.firebasestorage.app",
-    messagingSenderId: "1066269130031",
-    appId: "1:1066269130031:web:62b518c60d0c724571f5da",
-    measurementId: "G-D4N8JERGV8"
-  };
+  <!-- 用内嵌 SVG 做 favicon，避免 404 -->
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#4F46E5"/><text x="50%" y="55%" text-anchor="middle" font-size="36" font-family="Arial" fill="white">S</text></svg>'>
 
-  const app = initializeApp(firebaseConfig);
-  const storage = getStorage(app, "gs://chang-stem-class--materials.firebasestorage.app");
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
-
-  // 可添加多个管理员邮箱
-  const ADMIN_EMAILS = ["vivien.chang10@gmail.com"];
-
-  // UI refs
-  const loginBtn = document.getElementById("loginBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const who = document.getElementById("who");
-  const gradeTabs = document.getElementById("gradeTabs");
-  const listEl = document.getElementById("list");
-  const msgEl = document.getElementById("msg");
-  const adminBar = document.getElementById("adminBar");
-  const fileInput = document.getElementById("fileInput");
-  const uploadBtn = document.getElementById("uploadBtn");
-  const mkFolderBtn = document.getElementById("mkFolderBtn");
-  const gradeTitle = document.getElementById("gradeTitle");
-
-  let currentUser = null;
-  let currentGrade = null;
-
-  function setMessage(text) { msgEl.textContent = text || ""; }
-  function formatBytes(n){
-    if (!Number.isFinite(n)) return "";
-    const u = ['B','KB','MB','GB','TB']; let i = 0;
-    while (n >= 1024 && i < u.length-1) { n /= 1024; i++; }
-    return `${n.toFixed(n >= 100 ? 0 : n >= 10 ? 1 : 2)} ${u[i]}`;
-  }
-
-  onAuthStateChanged(auth, (user) => {
-    currentUser = user || null;
-    if (user) {
-      loginBtn.style.display = "none";
-      logoutBtn.style.display = "inline-block";
-      who.textContent = `Signed in: ${user.email}`;
-      adminBar.style.display = ADMIN_EMAILS.includes(user.email) ? "flex" : "none";
-      selectGrade("5th");
-    } else {
-      loginBtn.style.display = "inline-block";
-      logoutBtn.style.display = "none";
-      who.textContent = "";
-      adminBar.style.display = "none";
-      listEl.innerHTML = "";
-      gradeTitle.textContent = "Please sign in, then select a grade.";
-    }
-  });
-
-  loginBtn.onclick = async () => {
-    try { await signInWithPopup(auth, provider); }
-    catch (e) { console.error(e); alert("Sign-in failed: " + (e?.message || e)); }
-  };
-  logoutBtn.onclick = async () => { await signOut(auth); };
-
-  gradeTabs.addEventListener("click", (e) => {
-    const t = e.target.closest(".tab"); if (!t) return;
-    const g = t.dataset.grade; selectGrade(g);
-    for (const el of gradeTabs.querySelectorAll(".tab")) el.classList.toggle("active", el === t);
-  });
-
-  async function selectGrade(grade) {
-    if (!currentUser) { setMessage("Please sign in first."); return; }
-    currentGrade = grade;
-    gradeTitle.textContent = `${grade} — files & folders`;
-    setMessage("Loading...");
-    listEl.innerHTML = "";
-
-    try {
-      const baseRef = ref(storage, `${grade}/`);
-      const result = await listAll(baseRef);
-
-      // 子目录
-      for (const p of result.prefixes) {
-        const div = document.createElement("div");
-        div.className = "item";
-        div.innerHTML = `<b>📁 ${p.name}/</b><span class="hint">Folder under ${grade}/</span>`;
-        listEl.appendChild(div);
-
-        const sub = await listAll(p);
-        for (const f of sub.items) {
-          await renderFileItem(`${grade}/${p.name}/${f.name}`, f);
-        }
-      }
-
-      // 根目录文件
-      for (const f of result.items) {
-        await renderFileItem(`${grade}/${f.name}`, f);
-      }
-
-      if (!result.items.length && !result.prefixes.length) setMessage("No files yet. (Admins can upload.)");
-      else setMessage("");
-    } catch (err) {
-      console.error(err);
-      setMessage("Cannot list files. Make sure you are signed in and Storage rules allow authenticated read.");
-    }
-  }
-
-  async function renderFileItem(path, fileRefObj) {
-    try {
-      const url = await getDownloadURL(fileRefObj);
-      const meta = await getMetadata(fileRefObj);
-      const item = document.createElement("div");
-      item.className = "item";
-      const size = formatBytes(meta.size);
-      const adminBtns = (currentUser && ADMIN_EMAILS.includes(currentUser.email))
-        ? `<button class="btn" data-del="${path}">Delete</button>`
-        : "";
-      item.innerHTML = `
-        <b>📄 ${path.split('/').slice(-1)[0]}</b>
-        <div class="hint">Size: ${size || "—"}</div>
-        <div class="row" style="margin-top:6px">
-          <a class="btn" href="${url}" target="_blank" rel="noopener">Download</a>
-          ${adminBtns}
+  <style>
+    :root { --bg:#0b1020; --card:#111833; --muted:#99a3c7; --fg:#e8ecff; --brand:#4F46E5; }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    a{color:inherit}
+    .wrap{max-width:980px;margin:24px auto;padding:0 16px}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;box-shadow:0 6px 30px rgba(0,0,0,.25)}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .sp{flex:1}
+    h1{margin:0;font-size:22px}
+    .muted{color:var(--muted)}
+    .btn{appearance:none;border:1px solid rgba(255,255,255,.15);background:transparent;color:var(--fg);
+      padding:8px 12px;border-radius:10px;cursor:pointer}
+    .btn:hover{border-color:rgba(255,255,255,.35)}
+    .btn.primary{background:var(--brand);border-color:var(--brand)}
+    .tabs{display:flex;gap:8px;margin:14px 0 6px}
+    .tab{padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);cursor:pointer}
+    .tab.active{background:var(--brand);border-color:var(--brand)}
+    #adminBar{display:none;gap:8px;margin:10px 0;align-items:center}
+    #msg{min-height:24px;color:#c3cffd}
+    .item{padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:12px;margin:8px 0}
+    .hint{color:var(--muted);font-size:13px}
+    footer{opacity:.8;margin:22px 0 8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="row">
+        <div>
+          <h1>STEM Ms. Chang — Learning Resources</h1>
+          <div class="muted">STEM Teacher K–8 · Harmony Science Academy · Lubbock, TX</div>
         </div>
-      `;
-      listEl.appendChild(item);
+        <div class="sp"></div>
+        <button id="loginBtn" class="btn primary">Sign in with Google</button>
+        <button id="logoutBtn" class="btn" style="display:none">Sign out</button>
+      </div>
 
-      if (adminBtns) {
-        item.querySelector('[data-del]').onclick = async () => {
-          if (!confirm(`Delete "${path}" ?`)) return;
-          try {
-            await deleteObject(ref(storage, path));
-            item.remove();
-          } catch (e) {
-            console.error(e);
-            alert("Delete failed: " + (e?.message || e));
-          }
-        };
+      <div id="who" class="muted" style="margin-top:8px"></div>
+
+      <div id="gradeTabs" class="tabs" aria-label="Grades">
+        <div class="tab active" data-grade="5th">5th Grade</div>
+        <div class="tab" data-grade="6th">6th Grade</div>
+        <div class="tab" data-grade="7th">7th Grade</div>
+        <div class="tab" data-grade="8th">8th Grade</div>
+      </div>
+
+      <div id="adminBar" class="row">
+        <strong>Admin:</strong>
+        <input id="fileInput" type="file" class="btn" />
+        <button id="uploadBtn" class="btn">Upload to this grade</button>
+        <button id="mkFolderBtn" class="btn">＋ New folder</button>
+      </div>
+
+      <h3 id="gradeTitle" style="margin:10px 0 6px">Please sign in, then select a grade.</h3>
+      <div id="msg"></div>
+
+      <div id="list"></div>
+
+      <footer class="muted">
+        Tip: Files live in Firebase Storage under folders <code>5th/</code>, <code>6th/</code>, <code>7th/</code>, <code>8th/</code>.
+      </footer>
+    </div>
+  </div>
+
+  <!-- Firebase + 页面逻辑 -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getStorage, ref, listAll, uploadBytes, getDownloadURL,
+      getMetadata, deleteObject
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    // ========= Firebase 配置（将 storageBucket 设为 appspot.com 版本）=========
+    const firebaseConfig = {
+      apiKey: "AIzaSyDELcdhJKPrSVOGROj-yKl5rSGeNst6Z7k",
+      authDomain: "chang-stem-class--materials.firebaseapp.com",
+      projectId: "chang-stem-class--materials",
+      storageBucket: "chang-stem-class--materials.appspot.com", // ★ 推荐用 appspot.com
+      messagingSenderId: "1066269130031",
+      appId: "1:1066269130031:web:62b518c60d0c724571f5da",
+      measurementId: "G-D4N8JERGV8"
+    };
+
+    // 如果你确认必须用 firebasestorage.app（并且测试确实可用），就把上面一行改为：
+    // storageBucket: "chang-stem-class--materials.firebasestorage.app"
+
+    const app = initializeApp(firebaseConfig);
+    // 不传第二个参数时，会自动用 firebaseConfig.storageBucket 指定的桶
+    const storage = getStorage(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    // 可添加多个管理员邮箱
+    const ADMIN_EMAILS = ["vivien.chang10@gmail.com"];
+
+    // UI refs
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const who = document.getElementById("who");
+    const gradeTabs = document.getElementById("gradeTabs");
+    const listEl = document.getElementById("list");
+    const msgEl = document.getElementById("msg");
+    const adminBar = document.getElementById("adminBar");
+    const fileInput = document.getElementById("fileInput");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const mkFolderBtn = document.getElementById("mkFolderBtn");
+    const gradeTitle = document.getElementById("gradeTitle");
+
+    let currentUser = null;
+    let currentGrade = null;
+
+    function setMessage(text) { msgEl.textContent = text || ""; }
+    function formatBytes(n){
+      if (!Number.isFinite(n)) return "";
+      const u = ['B','KB','MB','GB','TB']; let i = 0;
+      while (n >= 1024 && i < u.length-1) { n /= 1024; i++; }
+      return `${n.toFixed(n >= 100 ? 0 : n >= 10 ? 1 : 2)} ${u[i]}`;
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user || null;
+      if (user) {
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "inline-block";
+        who.textContent = `Signed in: ${user.email}`;
+        adminBar.style.display = ADMIN_EMAILS.includes(user.email) ? "flex" : "none";
+        // 默认切到 5th
+        selectGrade("5th");
+      } else {
+        loginBtn.style.display = "inline-block";
+        logoutBtn.style.display = "none";
+        who.textContent = "";
+        adminBar.style.display = "none";
+        listEl.innerHTML = "";
+        gradeTitle.textContent = "Please sign in, then select a grade.";
       }
-    } catch (e) {
-      console.error(e);
+    });
+
+    loginBtn.onclick = async () => {
+      try { await signInWithPopup(auth, provider); }
+      catch (e) { console.error(e); alert("Sign-in failed: " + (e?.message || e)); }
+    };
+    logoutBtn.onclick = async () => { await signOut(auth); };
+
+    gradeTabs.addEventListener("click", (e) => {
+      const t = e.target.closest(".tab"); if (!t) return;
+      const g = t.dataset.grade; selectGrade(g);
+      for (const el of gradeTabs.querySelectorAll(".tab")) el.classList.toggle("active", el === t);
+    });
+
+    async function selectGrade(grade) {
+      if (!currentUser) { setMessage("Please sign in first."); return; }
+      currentGrade = grade;
+      gradeTitle.textContent = `${grade} — files & folders`;
+      setMessage("Loading...");
+      listEl.innerHTML = "";
+
+      try {
+        const baseRef = ref(storage, `${grade}/`);
+        const result = await listAll(baseRef);
+
+        // 子目录
+        for (const p of result.prefixes) {
+          const div = document.createElement("div");
+          div.className = "item";
+          div.innerHTML = `<b>📁 ${p.name}/</b><div class="hint">Folder under ${grade}/</div>`;
+          listEl.appendChild(div);
+
+          const sub = await listAll(p);
+          for (const f of sub.items) {
+            await renderFileItem(`${grade}/${p.name}/${f.name}`, f);
+          }
+        }
+
+        // 根目录文件
+        for (const f of result.items) {
+          await renderFileItem(`${grade}/${f.name}`, f);
+        }
+
+        if (!result.items.length && !result.prefixes.length) setMessage("No files yet. (Admins can upload.)");
+        else setMessage("");
+      } catch (err) {
+        console.error(err);
+        setMessage("Cannot list files. Make sure you are signed in and Storage rules allow authenticated read.");
+      }
     }
-  }
 
-  // 管理员上传
-  uploadBtn.onclick = async () => {
-    try {
-      if (!currentUser) return alert("Please sign in first.");
-      if (!ADMIN_EMAILS.includes(currentUser.email)) return alert("Only admin can upload.");
-      if (!currentGrade) return alert("Select a grade first.");
-      const file = fileInput.files?.[0]; if (!file) return alert("Choose a file first.");
+    async function renderFileItem(path, fileRefObj) {
+      try {
+        const url = await getDownloadURL(fileRefObj);
+        const meta = await getMetadata(fileRefObj);
+        const item = document.createElement("div");
+        item.className = "item";
+        const size = formatBytes(meta.size);
+        const adminBtns = (currentUser && ADMIN_EMAILS.includes(currentUser.email))
+          ? `<button class="btn" data-del="${path}">Delete</button>`
+          : "";
+        item.innerHTML = `
+          <b>📄 ${path.split('/').slice(-1)[0]}</b>
+          <div class="hint">Size: ${size || "—"}</div>
+          <div class="row" style="margin-top:6px">
+            <a class="btn" href="${url}" target="_blank" rel="noopener">Download</a>
+            ${adminBtns}
+          </div>
+        `;
+        listEl.appendChild(item);
 
-      const fileRef = ref(storage, `${currentGrade}/${file.name}`);
-      await uploadBytes(fileRef, file);
-      alert("Uploaded!");
-      selectGrade(currentGrade);
-    } catch (e) {
-      console.error(e);
-      alert("Upload failed: " + (e?.message || e));
+        if (adminBtns) {
+          item.querySelector('[data-del]').onclick = async () => {
+            if (!confirm(`Delete "${path}" ?`)) return;
+            try {
+              await deleteObject(ref(storage, path));
+              item.remove();
+            } catch (e) {
+              console.error(e);
+              alert("Delete failed: " + (e?.message || e));
+            }
+          };
+        }
+      } catch (e) {
+        console.error(e);
+      }
     }
-  };
 
-  // 管理员新建“文件夹”
-  mkFolderBtn.onclick = async () => {
-    try {
-      if (!currentUser) return alert("Please sign in first.");
-      if (!ADMIN_EMAILS.includes(currentUser.email)) return alert("Only admin can create folders.");
-      if (!currentGrade) return alert("Select a grade first.");
-      const name = prompt("New folder name (letters/numbers only):");
-      if (!name) return;
-      const safe = name.trim().replace(/[^a-z0-9-_ ]/gi, "_");
-      const blob = new Blob([""], { type: "text/plain" });
-      const keepRef = ref(storage, `${currentGrade}/${safe}/.keep`);
-      await uploadBytes(keepRef, blob);
-      alert(`Folder "${safe}" created.`);
-      selectGrade(currentGrade);
-    } catch (e) {
-      console.error(e);
-      alert("Create folder failed: " + (e?.message || e));
-    }
-  };
+    // 管理员上传
+    uploadBtn.onclick = async () => {
+      try {
+        if (!currentUser) return alert("Please sign in first.");
+        if (!ADMIN_EMAILS.includes(currentUser.email)) return alert("Only admin can upload.");
+        if (!currentGrade) return alert("Select a grade first.");
+        const file = fileInput.files?.[0]; if (!file) return alert("Choose a file first.");
 
-  console.log("Using bucket:", firebaseConfig.storageBucket);
-</script>
+        const fileRef = ref(storage, `${currentGrade}/${file.name}`);
+        await uploadBytes(fileRef, file);
+        alert("Uploaded!");
+        selectGrade(currentGrade);
+      } catch (e) {
+        console.error(e);
+        alert("Upload failed: " + (e?.message || e));
+      }
+    };
+
+    // 管理员新建“文件夹”
+    mkFolderBtn.onclick = async () => {
+      try {
+        if (!currentUser) return alert("Please sign in first.");
+        if (!ADMIN_EMAILS.includes(currentUser.email)) return alert("Only admin can create folders.");
+        if (!currentGrade) return alert("Select a grade first.");
+        const name = prompt("New folder name (letters/numbers only):");
+        if (!name) return;
+        const safe = name.trim().replace(/[^a-z0-9-_ ]/gi, "_");
+        const blob = new Blob([""], { type: "text/plain" });
+        const keepRef = ref(storage, `${currentGrade}/${safe}/.keep`);
+        await uploadBytes(keepRef, blob);
+        alert(`Folder "${safe}" created.`);
+        selectGrade(currentGrade);
+      } catch (e) {
+        console.error(e);
+        alert("Create folder failed: " + (e?.message || e));
+      }
+    };
+
+    console.log("Using bucket:", firebaseConfig.storageBucket);
+  </script>
+</body>
+</html>
